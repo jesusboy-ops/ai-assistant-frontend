@@ -11,9 +11,7 @@
   ],
   "env": {
     "VITE_API_BASE_URL": "https://ai-assistant-backend-oqpp.onrender.com",
-    "VITE_GEMINI_API_KEY": "@gemini_api_key",
-    "VITE_AI_MODEL": "gemini-1.5-flash",
-    "VITE_GOOGLE_CLIENT_ID": "@google_client_id"
+    "VITE_AI_MODEL": "gemini-1.5-flash"
   },
   "headers": [
     {
