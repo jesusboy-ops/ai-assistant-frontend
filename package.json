@@ -1,0 +1,17 @@
+{
+  "name": "spark-ai-assistant-frontend",
+  "version": "1.0.0",
+  "description": "Spark AI Assistant - Production Ready Frontend",
+  "scripts": {
+    "build": "cd spark-ai-assistant && npm run build",
+    "dev": "cd spark-ai-assistant && npm run dev",
+    "preview": "cd spark-ai-assistant && npm run preview",
+    "install-deps": "cd spark-ai-assistant && npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jesusboy-ops/ai-assistant-frontend.git"
+  },
+  "author": "jesusboy-ops",
+  "license": "MIT"
+}
