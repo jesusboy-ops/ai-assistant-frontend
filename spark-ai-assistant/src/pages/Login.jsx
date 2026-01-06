@@ -1,6 +1,6 @@
 // Simple Login page
-import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import {
   Box,
@@ -13,22 +13,26 @@ import {
   IconButton,
   Container
 } from '@mui/material';
-import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Visibility,
   VisibilityOff,
   AutoAwesome as SparkIcon
 } from '@mui/icons-material';
 import useAuth from '../hooks/useAuth';
-import { loginSuccess } from '../store/slices/authSlice';
-import toast from '../utils/toast';
+import { clearError } from '../store/slices/authSlice';
 import { validateEmail, validateRequired } from '../utils/validators';
 
 const Login = () => {
+  const dispatch = useDispatch();
   const { login, loading } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+
+  // Clear any previous errors and loading states when component mounts
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -44,20 +48,6 @@ const Login = () => {
     if (passwordError) newErrors.password = passwordError;
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // EMERGENCY PRESENTATION MODE - bypasses backend
-  const presentationLogin = () => {
-    const mockUser = { id: '1', name: 'Presentation User', email: 'demo@spark.com' };
-    const mockToken = 'presentation-token-' + Date.now();
-    
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    
-    // Dispatch success immediately
-    dispatch(loginSuccess({ user: mockUser, token: mockToken }));
-    toast.success('Presentation mode activated!');
-    navigate('/dashboard');
   };
 
   const handleSubmit = async (e) => {

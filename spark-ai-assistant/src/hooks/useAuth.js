@@ -29,26 +29,6 @@ export const useAuth = () => {
       return result;
     } catch (err) {
       console.error('❌ Login failed:', err);
-      
-      // Production fallback for presentation
-      if (err.includes('timeout') || err.includes('Backend connection failed')) {
-        console.log('🎭 Activating presentation mode due to backend timeout');
-        const mockUser = { 
-          id: 'presentation-user', 
-          name: 'Presentation User', 
-          email: email || 'demo@spark.com' 
-        };
-        const mockToken = 'presentation-token-' + Date.now();
-        
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        
-        dispatch(loginSuccess({ user: mockUser, token: mockToken }));
-        toast.success('Presentation mode activated!');
-        navigate('/dashboard');
-        return { user: mockUser, token: mockToken };
-      }
-      
       toast.error(err);
       throw new Error(err);
     }
@@ -65,26 +45,6 @@ export const useAuth = () => {
       return result;
     } catch (err) {
       console.error('❌ Registration failed:', err);
-      
-      // Production fallback for presentation
-      if (err.includes('timeout') || err.includes('Backend connection failed')) {
-        console.log('🎭 Activating presentation mode due to backend timeout');
-        const mockUser = { 
-          id: 'presentation-user', 
-          name: name || 'Presentation User', 
-          email: email || 'demo@spark.com' 
-        };
-        const mockToken = 'presentation-token-' + Date.now();
-        
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user', JSON.stringify(mockUser));
-        
-        dispatch(loginSuccess({ user: mockUser, token: mockToken }));
-        toast.success('Account created in presentation mode!');
-        navigate('/dashboard');
-        return { user: mockUser, token: mockToken };
-      }
-      
       toast.error(err);
       throw new Error(err);
     }

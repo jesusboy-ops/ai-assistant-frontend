@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
     try {
       console.log('🔄 Starting login process...');
       
-      // Create a timeout promise - 8 seconds for production
+      // Create a timeout promise - 8 seconds for faster response
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Login timeout')), 8000);
       });
@@ -52,7 +52,7 @@ export const registerUser = createAsyncThunk(
     try {
       console.log('🔄 Starting registration process...');
       
-      // Create a timeout promise - 8 seconds for production
+      // Create a timeout promise - 8 seconds for faster response
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Registration timeout')), 8000);
       });
@@ -164,6 +164,7 @@ const authSlice = createSlice({
     },
     clearError: (state) => {
       state.error = null;
+      state.loading = false; // Also reset loading state
     }
   },
   extraReducers: (builder) => {

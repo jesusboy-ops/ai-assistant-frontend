@@ -26,7 +26,7 @@ const createAxiosInstance = (baseURL) => {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest'
     },
-    timeout: 10000, // 10 seconds for production deployment
+    timeout: 10000, // 10 seconds - faster response
     withCredentials: false
   });
 };
