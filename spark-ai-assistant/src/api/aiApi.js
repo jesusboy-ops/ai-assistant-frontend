@@ -1,10 +1,15 @@
-// AI API service for OpenAI
+// AI API service for OpenAI/OpenRouter
 import axios from 'axios';
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo';
 
-// OpenAI API client
+// Check if API key is properly configured
+const isApiKeyConfigured = () => {
+  return OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openrouter_api_key_here' && OPENAI_API_KEY.length > 10;
+};
+
+// OpenAI/OpenRouter API client
 const openaiClient = axios.create({
   baseURL: OPENAI_API_KEY?.startsWith('sk-or-') ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1',
   headers: {
@@ -189,9 +194,15 @@ const generateLocalResponse = (message) => {
 export const aiApi = {
   // Generate chat response using OpenAI/OpenRouter
   generateChatResponse: async (message, conversationHistory = []) => {
+    // Check if API key is configured
+    if (!isApiKeyConfigured()) {
+      console.error('❌ OpenRouter API key not configured');
+      throw new Error('AI service is not configured. Please set up your OpenRouter API key in the environment variables.');
+    }
+
     try {
       console.log('🤖 Generating AI response with OpenRouter...');
-      console.log('🔑 API Key length:', OPENAI_API_KEY?.length);
+      console.log('🔑 API Key configured:', isApiKeyConfigured());
       console.log('🔑 Using OpenRouter:', OPENAI_API_KEY?.startsWith('sk-or-'));
       
       // Build conversation context for OpenAI
