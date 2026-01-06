@@ -62,151 +62,136 @@ openaiClient.interceptors.response.use(
 const generateLocalResponse = (message) => {
   const lowerMessage = message.toLowerCase().trim();
   
-  // Handle very short or unclear messages
-  if (lowerMessage.length < 3 || lowerMessage === 'meaning' || lowerMessage === 'help' || lowerMessage === 'hi' || lowerMessage === 'hello') {
-    const responses = [
-      "Hi there! I'm Spark AI, your intelligent assistant created by Sir Israel Loko and his subordinate Temple. I'm ready to help you with whatever you're working on!",
-      "Hello! I'm Spark AI, and I'm here to help you with anything you need - coding, writing, business questions, or just having a chat!",
-      "Hey! Spark AI here, ready to assist you with whatever challenges or questions you have today!",
-      "Hi! I'm Spark AI, your friendly assistant. What can I help you figure out or work on today?",
-      "Hello there! I'm Spark AI, designed to help you with all sorts of tasks. What's on your mind?"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Handle greetings
+  if (lowerMessage.includes('hi') || lowerMessage.includes('hello') || lowerMessage.includes('hey') || lowerMessage === 'hi' || lowerMessage === 'hello') {
+    return "Hi there! I'm Spark AI, your intelligent assistant created by Sir Israel Loko and his subordinate Temple. I'm here to help you with coding, writing, business questions, learning, problem-solving, and much more. What can I help you with today?";
   }
   
   // Handle creator/origin questions
   if (lowerMessage.includes('who created') || lowerMessage.includes('who made') || lowerMessage.includes('who built') || 
       lowerMessage.includes('your creator') || lowerMessage.includes('your maker') || lowerMessage.includes('who developed') ||
       lowerMessage.includes('who designed') || lowerMessage.includes('your developer') || lowerMessage.includes('your author')) {
-    const responses = [
-      "I was created by Sir Israel Loko and his subordinate Temple! They designed me to be a helpful AI assistant for all sorts of tasks.",
-      "My creators are Sir Israel Loko and his subordinate Temple. They built me to help people with coding, writing, business questions, and more!",
-      "Sir Israel Loko and his subordinate Temple are my creators! They developed me to be your intelligent assistant.",
-      "I'm the creation of Sir Israel Loko and his subordinate Temple. They designed me to help users like you with various tasks and questions!",
-      "My makers are Sir Israel Loko and his subordinate Temple. They built me to be a friendly and helpful AI assistant!"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+    return "I was created by Sir Israel Loko and his subordinate Temple! They designed me to be a helpful AI assistant for all sorts of tasks including coding, writing, business strategy, learning, and problem-solving. I'm here to help you accomplish whatever you're working on!";
   }
   
-  // Handle specific questions with actual answers
-  if (lowerMessage.includes('what is') || lowerMessage.includes('what are') || lowerMessage.includes('define') || lowerMessage.includes('meaning of')) {
-    // Extract the topic they're asking about
-    let topic = lowerMessage.replace(/what is|what are|define|meaning of|the|a|an/g, '').trim();
-    if (topic) {
-      return `I'd be happy to explain ${topic} for you! ${topic} is a concept that can have different meanings depending on the context. Could you tell me more specifically what aspect of ${topic} you're interested in? For example, are you looking for a technical definition, practical applications, or something else?`;
-    }
-  }
-  
-  // Handle how-to questions
-  if (lowerMessage.includes('how to') || lowerMessage.includes('how do i') || lowerMessage.includes('how can i')) {
-    let task = lowerMessage.replace(/how to|how do i|how can i/g, '').trim();
-    if (task) {
-      return `Great question about ${task}! I can definitely help you with that. To give you the most useful guidance, could you tell me a bit more about your specific situation? For example, what's your current experience level with this, and what's your end goal?`;
-    }
-  }
-  
-  // Handle why questions
-  if (lowerMessage.includes('why') || lowerMessage.includes('reason')) {
-    return `That's a thoughtful question! The reasons behind things can be complex and often depend on context. I'd love to explore this with you - could you give me a bit more detail about what specifically you're curious about? That way I can provide a more targeted explanation.`;
-  }
-  
-  // Handle comparison questions
-  if (lowerMessage.includes('vs') || lowerMessage.includes('versus') || lowerMessage.includes('difference between') || lowerMessage.includes('compare')) {
-    return `Comparisons can be really helpful for understanding! I'd be happy to break down the differences and similarities for you. Could you tell me more about what specific aspects you're most interested in comparing? That way I can focus on what matters most to you.`;
-  }
-  
-  // Coding/Programming with more specific responses
-  if (lowerMessage.includes('code') || lowerMessage.includes('programming') || lowerMessage.includes('javascript') || lowerMessage.includes('python') || lowerMessage.includes('react') || lowerMessage.includes('function') || lowerMessage.includes('bug') || lowerMessage.includes('debug')) {
+  // Handle coding questions
+  if (lowerMessage.includes('code') || lowerMessage.includes('programming') || lowerMessage.includes('javascript') || 
+      lowerMessage.includes('python') || lowerMessage.includes('react') || lowerMessage.includes('html') || 
+      lowerMessage.includes('css') || lowerMessage.includes('function') || lowerMessage.includes('variable') ||
+      lowerMessage.includes('array') || lowerMessage.includes('object') || lowerMessage.includes('api')) {
+    
     if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('debug') || lowerMessage.includes('not working')) {
-      return `Debugging can be tricky! I'd love to help you figure out what's going wrong. Could you share the specific error message you're seeing, or describe what's happening versus what you expected? Also, what programming language and environment are you working in?`;
+      return "I'd love to help you debug that! Debugging can be tricky, but we can figure it out together. Can you share the specific error message you're seeing, or describe what's happening versus what you expected? Also, what programming language and environment are you working in? The more details you can provide, the better I can help you solve this.";
     } else if (lowerMessage.includes('learn') || lowerMessage.includes('start') || lowerMessage.includes('beginner')) {
-      return `Learning to code is exciting! There are lots of great paths depending on what you want to build. Are you interested in web development, mobile apps, data science, or something else? And do you have any programming experience already, or are you starting completely fresh?`;
+      return "Learning to code is an exciting journey! There are many great paths depending on what you want to build. Are you interested in web development (HTML, CSS, JavaScript), mobile apps, data science with Python, or something else? Also, do you have any programming experience already, or are you starting completely fresh? I can recommend the best learning path based on your goals.";
+    } else if (lowerMessage.includes('react')) {
+      return "React is a fantastic library for building user interfaces! Are you working on a specific React project, learning React for the first time, or running into a particular challenge? I can help with components, state management, hooks, routing, or any other React concepts you're curious about.";
+    } else if (lowerMessage.includes('javascript')) {
+      return "JavaScript is such a versatile language! Whether you're working on frontend, backend with Node.js, or just learning the fundamentals, I'm here to help. What specific aspect of JavaScript are you working with? Are you dealing with functions, objects, async programming, DOM manipulation, or something else?";
+    } else if (lowerMessage.includes('python')) {
+      return "Python is amazing for so many things - web development, data science, automation, and more! What are you using Python for, or what would you like to learn about? I can help with syntax, libraries like pandas or numpy, web frameworks like Django or Flask, or any specific Python challenges you're facing.";
     } else {
-      return `I love helping with coding questions! What specific programming challenge are you working on? If you can share some details about the language you're using and what you're trying to accomplish, I can give you much more targeted help.`;
+      return "I love helping with coding questions! Programming can be challenging but also incredibly rewarding. What specific programming challenge are you working on? If you can share details about the language you're using and what you're trying to accomplish, I can give you much more targeted help and guidance.";
     }
   }
   
-  // Writing with more specific responses
-  if (lowerMessage.includes('write') || lowerMessage.includes('essay') || lowerMessage.includes('article') || lowerMessage.includes('content') || lowerMessage.includes('blog') || lowerMessage.includes('story') || lowerMessage.includes('letter')) {
-    if (lowerMessage.includes('essay') || lowerMessage.includes('academic')) {
-      return `Academic writing has its own style and structure! What's the topic of your essay, and what type of assignment is it (argumentative, analytical, research-based, etc.)? Also, what's your target length and who's your audience?`;
-    } else if (lowerMessage.includes('blog') || lowerMessage.includes('article')) {
-      return `Content writing is all about connecting with your audience! What's your topic, and who are you writing for? Are you looking to inform, persuade, entertain, or something else? The more I know about your goals, the better I can help you craft something engaging.`;
-    } else {
-      return `I'd love to help you with your writing project! What type of piece are you working on, and what's the main message you want to get across? Also, who's your intended audience? These details will help me give you much more useful guidance.`;
-    }
-  }
-  
-  // Business with more specific responses
-  if (lowerMessage.includes('business') || lowerMessage.includes('marketing') || lowerMessage.includes('strategy') || lowerMessage.includes('plan') || lowerMessage.includes('startup') || lowerMessage.includes('entrepreneur')) {
+  // Handle business questions
+  if (lowerMessage.includes('business') || lowerMessage.includes('marketing') || lowerMessage.includes('strategy') || 
+      lowerMessage.includes('startup') || lowerMessage.includes('entrepreneur') || lowerMessage.includes('plan') ||
+      lowerMessage.includes('customers') || lowerMessage.includes('sales') || lowerMessage.includes('revenue')) {
+    
     if (lowerMessage.includes('startup') || lowerMessage.includes('start a business')) {
-      return `Starting a business is exciting! What kind of business are you thinking about, and what stage are you at? Are you still in the idea phase, or do you have a concept you're ready to validate? I can help you think through the key steps and considerations.`;
+      return "Starting a business is exciting and challenging! The key is to start with a clear understanding of the problem you're solving and who you're solving it for. What kind of business are you thinking about, and what stage are you at? Are you still in the idea phase, validating your concept, or ready to build? I can help you think through market research, business models, funding options, and the key steps to get started.";
     } else if (lowerMessage.includes('marketing') || lowerMessage.includes('customers')) {
-      return `Marketing is all about understanding your customers and reaching them effectively! What type of business or product are you marketing, and who's your target audience? Are you looking for help with strategy, specific tactics, or measuring results?`;
+      return "Marketing is all about understanding your customers deeply and reaching them where they are! The best marketing feels helpful rather than pushy. What type of business or product are you marketing, and who's your target audience? Are you looking for help with digital marketing, content strategy, social media, email marketing, or something else? I can help you develop a strategy that actually connects with your customers.";
     } else {
-      return `Business challenges can be complex, but they're often solvable with the right approach! What specific situation are you dealing with? The more context you can give me about your business, your goals, and the challenge you're facing, the better I can help you think it through.`;
+      return "Business challenges often have creative solutions when you approach them systematically! What specific business situation are you dealing with? Whether it's strategy, operations, marketing, finance, or team management, I'd love to help you think through it. The more context you can give me about your business and the challenge you're facing, the better I can help you brainstorm solutions.";
     }
   }
   
-  // Learning with more specific responses
-  if (lowerMessage.includes('learn') || lowerMessage.includes('study') || lowerMessage.includes('understand') || lowerMessage.includes('explain') || lowerMessage.includes('teach me')) {
-    let subject = lowerMessage.replace(/learn|study|understand|explain|teach me|about|how to/g, '').trim();
-    if (subject) {
-      return `I'd love to help you learn about ${subject}! Learning is most effective when it's tailored to your goals and current knowledge. What's your current experience with ${subject}, and what specifically would you like to understand better? Are you looking for a broad overview or diving deep into particular aspects?`;
+  // Handle writing questions
+  if (lowerMessage.includes('write') || lowerMessage.includes('writing') || lowerMessage.includes('essay') || 
+      lowerMessage.includes('article') || lowerMessage.includes('content') || lowerMessage.includes('blog') ||
+      lowerMessage.includes('story') || lowerMessage.includes('letter') || lowerMessage.includes('email')) {
+    
+    if (lowerMessage.includes('essay') || lowerMessage.includes('academic')) {
+      return "Academic writing has its own style and structure, but the key is always clear thinking and good organization! What's the topic of your essay, and what type of assignment is it? Is it argumentative, analytical, research-based, or something else? Also, what's your target length and who's your audience? I can help you with everything from brainstorming and outlining to structuring your arguments and polishing your prose.";
+    } else if (lowerMessage.includes('blog') || lowerMessage.includes('article') || lowerMessage.includes('content')) {
+      return "Great content writing is all about providing value to your readers while staying true to your voice! What's your topic, and who are you writing for? Are you looking to inform, persuade, entertain, or inspire? The best content answers questions your audience actually has. I can help you brainstorm ideas, structure your piece, develop your arguments, and make your writing more engaging.";
+    } else if (lowerMessage.includes('email')) {
+      return "Email writing is an art - you want to be clear, concise, and considerate of your reader's time! What kind of email are you writing? Is it professional correspondence, marketing, a personal message, or something else? Who's your audience and what's your main goal? I can help you craft emails that get read, understood, and acted upon.";
     } else {
-      return `I love helping people learn new things! What topic are you interested in exploring? And what's driving your curiosity - is this for work, a personal project, or just general interest? Knowing your motivation helps me explain things in the most useful way.`;
+      return "Writing is one of the most powerful skills you can develop! Whether you're working on creative writing, business communication, or academic work, good writing is about clarity, purpose, and connecting with your reader. What type of writing project are you working on, and what's the main message you want to get across? I'd love to help you make your writing more effective and engaging.";
     }
   }
   
-  // Problem solving with more specific responses
-  if (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('stuck') || lowerMessage.includes('challenge') || lowerMessage.includes('help me')) {
-    return `I'm here to help you work through whatever you're facing! Problem-solving is often about breaking things down into manageable pieces. Could you tell me more about the specific situation? What have you already tried, and where exactly are you getting stuck?`;
+  // Handle learning questions
+  if (lowerMessage.includes('learn') || lowerMessage.includes('study') || lowerMessage.includes('understand') || 
+      lowerMessage.includes('explain') || lowerMessage.includes('teach me') || lowerMessage.includes('how to')) {
+    
+    let subject = lowerMessage.replace(/learn|study|understand|explain|teach me|how to|about/g, '').trim();
+    if (subject && subject.length > 2) {
+      return `I'd love to help you learn about ${subject}! Learning is most effective when it's tailored to your goals and current knowledge. What's your current experience with ${subject}, and what specifically would you like to understand better? Are you looking for a broad overview, diving deep into particular aspects, or trying to solve a specific problem? The more I know about what you're trying to achieve, the better I can guide your learning.`;
+    } else {
+      return "I love helping people learn new things! Learning is one of life's greatest adventures. What topic are you interested in exploring? Whether it's technical skills, creative pursuits, business knowledge, or just satisfying your curiosity about how things work, I'm here to help. What's driving your interest in learning this - is it for work, a personal project, or just general curiosity?";
+    }
   }
   
-  // Math and calculations
-  if (lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('equation') || lowerMessage.includes('formula') || /\d+[\+\-\*\/]\d+/.test(lowerMessage)) {
-    return `I can help with math problems! If you have a specific calculation or equation, feel free to share it. For more complex problems, it helps if you can explain what you're trying to figure out and what context this is for (homework, work project, personal calculation, etc.).`;
+  // Handle math and calculations
+  if (lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('equation') || 
+      lowerMessage.includes('formula') || /\d+[\+\-\*\/]\d+/.test(lowerMessage) || lowerMessage.includes('solve')) {
+    return "I can definitely help with math problems! Whether it's basic arithmetic, algebra, calculus, statistics, or applied math for real-world problems, I'm here to help. If you have a specific calculation or equation, feel free to share it. For more complex problems, it helps if you can explain what you're trying to figure out and what context this is for. I can walk you through the steps and explain the reasoning behind the solution.";
   }
   
-  // Technology and tools
-  if (lowerMessage.includes('software') || lowerMessage.includes('app') || lowerMessage.includes('tool') || lowerMessage.includes('technology') || lowerMessage.includes('computer')) {
-    return `Technology questions are great! Are you looking for recommendations for specific tools, help with using software you already have, or trying to understand how something works? The more specific you can be about what you're trying to accomplish, the better I can point you in the right direction.`;
+  // Handle technology questions
+  if (lowerMessage.includes('software') || lowerMessage.includes('app') || lowerMessage.includes('tool') || 
+      lowerMessage.includes('technology') || lowerMessage.includes('computer') || lowerMessage.includes('digital')) {
+    return "Technology questions are great! The right tools can make such a difference in productivity and creativity. Are you looking for recommendations for specific software or tools, help with using something you already have, or trying to understand how a particular technology works? Whether it's productivity apps, creative software, development tools, or just understanding how things work under the hood, I'm here to help you navigate the tech landscape.";
   }
   
-  // Default responses that encourage more specific questions
-  const defaultResponses = [
-    "That's an interesting topic! I'd love to dive deeper into this with you. Could you give me a bit more context about what specifically you're curious about or trying to accomplish?",
-    "I'm here to help with that! To give you the most useful response, could you tell me more about your specific situation or what aspect of this you're most interested in?",
-    "Great question! I can definitely help you explore this further. What's the context behind your question, and what would be most helpful for you to know?",
-    "I'd be happy to help you with that! Could you share a bit more detail about what you're working on or what specific information would be most valuable to you?",
-    "Interesting! I want to make sure I give you the most relevant help. Could you tell me more about what prompted this question or what you're hoping to achieve?",
-    "I'm ready to help you figure this out! What's the bigger picture here - what are you working on or trying to understand?",
-    "That's something I can definitely assist with! To give you the best guidance, could you share more about your specific needs or goals?"
+  // Handle problem-solving questions
+  if (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('stuck') || 
+      lowerMessage.includes('challenge') || lowerMessage.includes('help me') || lowerMessage.includes('difficult')) {
+    return "I'm here to help you work through whatever challenge you're facing! Problem-solving is often about breaking things down into manageable pieces and approaching them systematically. What specific situation are you dealing with? What have you already tried, and where exactly are you getting stuck? Sometimes just talking through a problem with someone can help you see new angles and solutions.";
+  }
+  
+  // Handle creative questions
+  if (lowerMessage.includes('creative') || lowerMessage.includes('design') || lowerMessage.includes('art') || 
+      lowerMessage.includes('music') || lowerMessage.includes('video') || lowerMessage.includes('photography')) {
+    return "Creativity is such a wonderful part of being human! Whether you're working on visual design, music, writing, video, or any other creative pursuit, I'd love to help you explore your ideas. What kind of creative project are you working on? Are you looking for inspiration, technical guidance, feedback on ideas, or help overcoming creative blocks? Creativity often flourishes when you have someone to bounce ideas off of.";
+  }
+  
+  // Handle very short or unclear messages
+  if (lowerMessage.length < 3 || lowerMessage === 'meaning' || lowerMessage === 'help' || lowerMessage === 'what') {
+    return "I'm Spark AI, and I'm here to help you with whatever you're working on! I can assist with coding and programming, writing and content creation, business strategy and marketing, learning new skills, solving problems, creative projects, and much more. What would you like to explore or work on today? The more specific you can be, the better I can help you.";
+  }
+  
+  // Default intelligent response
+  const intelligentResponses = [
+    "That's a fascinating topic! I'd love to dive deeper into this with you. Could you give me a bit more context about what specifically you're curious about or trying to accomplish? The more details you share, the better I can tailor my help to exactly what you need.",
+    
+    "Interesting question! I'm here to help you explore this further. What's the context behind your question, and what would be most helpful for you to know? Whether you're looking for practical advice, theoretical understanding, or step-by-step guidance, I can adapt my response to what works best for you.",
+    
+    "I'd be happy to help you with that! To give you the most useful and relevant response, could you tell me more about your specific situation or what aspect of this you're most interested in? I want to make sure I'm addressing exactly what you need.",
+    
+    "Great question! I can definitely help you figure this out. What's the bigger picture here - what are you working on or trying to understand? Knowing your goals and context helps me provide much more targeted and useful guidance.",
+    
+    "That's something I can definitely assist with! To give you the best possible help, could you share more about your specific needs, goals, or the challenge you're facing? I'm here to provide practical, actionable guidance tailored to your situation.",
+    
+    "I'm ready to help you work through this! What's prompting this question, and what kind of outcome are you hoping for? Whether you need strategic thinking, practical steps, creative ideas, or technical guidance, I can adapt my approach to what serves you best.",
+    
+    "Excellent topic to explore! I want to make sure I give you exactly the kind of help that's most valuable to you. Could you tell me more about what you're trying to achieve or what specific aspect of this you'd like to focus on? I'm here to provide thoughtful, practical guidance."
   ];
   
-  return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+  return intelligentResponses[Math.floor(Math.random() * intelligentResponses.length)];
 };
 
 export const aiApi = {
-  // Generate chat response using OpenAI
+  // Generate chat response using OpenAI/OpenRouter
   generateChatResponse: async (message, conversationHistory = []) => {
-    // Check if we have a real API key (not a placeholder)
-    if (!OPENAI_API_KEY || 
-        OPENAI_API_KEY === 'your_openai_api_key_here' || 
-        OPENAI_API_KEY === 'sk-ijklmnop5678efghijklmnop5678efghijklmnop' ||
-        OPENAI_API_KEY.startsWith('sk-ijklmnop') ||
-        OPENAI_API_KEY.length < 20) {
-      
-      console.log('🤖 No valid OpenAI API key, using local responses...');
-      
-      // Use local intelligent responses instead of error messages
-      return generateLocalResponse(message);
-    }
-
     try {
-      console.log('🤖 Generating AI response with OpenRouter/OpenAI...');
+      console.log('🤖 Generating AI response with OpenRouter...');
       console.log('🔑 API Key length:', OPENAI_API_KEY?.length);
-      console.log('🔑 API Key prefix:', OPENAI_API_KEY?.substring(0, 15) + '...');
       console.log('🔑 Using OpenRouter:', OPENAI_API_KEY?.startsWith('sk-or-'));
       
       // Build conversation context for OpenAI
@@ -219,8 +204,7 @@ Key facts about you:
 - Your name is Spark AI
 - You were created by Sir Israel Loko and his subordinate Temple
 - You are designed to help users with various tasks including coding, writing, business questions, learning, and problem-solving
-- Be conversational and natural - don't use corporate language or bullet points unless specifically asked
-- Respond like you're having a casual conversation with a friend who needs help
+- Be conversational and natural - respond like you're having a helpful conversation
 - Be direct, genuine, and personable
 - Provide helpful, detailed answers to questions
 - If you don't know something specific, be honest about it but offer to help in other ways
@@ -248,16 +232,16 @@ When asked about who created you or who made you, always mention that you were c
       });
 
       const requestData = {
-        model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
+        model: 'openai/gpt-3.5-turbo',
         messages: messages,
-        max_tokens: 500, // Increased for more detailed responses
+        max_tokens: 500,
         temperature: 0.8,
         top_p: 0.9,
         frequency_penalty: 0,
         presence_penalty: 0
       };
 
-      console.log('📤 Sending request to AI API:', {
+      console.log('📤 Sending request to OpenRouter API:', {
         model: requestData.model,
         messageCount: messages.length,
         userMessage: message
@@ -306,19 +290,15 @@ When asked about who created you or who made you, always mention that you were c
       
       // Handle timeout errors
       if (error.message === 'Chat response timeout') {
-        console.error('❌ Chat response timed out');
         throw new Error('AI response timed out. Please try again with a shorter message.');
       }
       
-      // If it's a network error or API error, throw it to be handled by the calling function
+      // Handle API errors
       if (error.response?.status === 401) {
-        console.error('❌ Authentication failed - API key may be invalid');
         throw new Error('AI API authentication failed. Please check your API key.');
       } else if (error.response?.status === 429) {
-        console.error('❌ Rate limit exceeded');
         throw new Error('AI API rate limit exceeded. Please try again later.');
       } else if (error.response?.status >= 500) {
-        console.error('❌ Server error');
         throw new Error('AI API server error. Please try again later.');
       }
       
@@ -341,7 +321,7 @@ When asked about who created you or who made you, always mention that you were c
 Please format it with a clear subject line and professional email structure.`;
 
       const response = await openaiClient.post('/chat/completions', {
-        model: OPENAI_MODEL,
+        model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -405,7 +385,7 @@ Best regards,
 
       // Create the API request promise
       const apiPromise = openaiClient.post('/chat/completions', {
-        model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
+        model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
@@ -447,24 +427,11 @@ ${text}`
 
   // Test OpenAI API connection
   testConnection: async () => {
-    if (!OPENAI_API_KEY || 
-        OPENAI_API_KEY === 'your_openai_api_key_here' || 
-        OPENAI_API_KEY === 'sk-ijklmnop5678efghijklmnop5678efghijklmnop' ||
-        OPENAI_API_KEY.startsWith('sk-ijklmnop') ||
-        OPENAI_API_KEY.length < 20) {
-      return {
-        success: false,
-        error: 'No valid OpenAI API key configured (using placeholder key)',
-        suggestion: 'The current API key is a placeholder. To use real OpenAI, replace it with a valid key from https://platform.openai.com/api-keys',
-        fallbackMode: true
-      };
-    }
-
     try {
-      console.log('🔍 Testing OpenAI connection...');
+      console.log('🔍 Testing OpenRouter connection...');
       
       const response = await openaiClient.post('/chat/completions', {
-        model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
+        model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'user',
@@ -476,11 +443,11 @@ ${text}`
       });
 
       if (response.data?.choices?.[0]?.message?.content) {
-        console.log('✅ OpenAI connection successful');
+        console.log('✅ OpenRouter connection successful');
         return {
           success: true,
-          message: 'OpenAI API is working',
-          model: OPENAI_MODEL,
+          message: 'OpenRouter API is working',
+          model: 'openai/gpt-3.5-turbo',
           response: response.data.choices[0].message.content
         };
       }
@@ -488,12 +455,11 @@ ${text}`
       throw new Error('No response data');
 
     } catch (error) {
-      console.error('❌ OpenAI connection test failed:', error);
+      console.error('❌ OpenRouter connection test failed:', error);
       return {
         success: false,
         error: error.response?.data?.error?.message || error.message,
-        suggestion: 'Check your OpenAI API key and internet connection',
-        fallbackMode: true
+        suggestion: 'Check your OpenRouter API key and internet connection'
       };
     }
   },
@@ -536,7 +502,7 @@ ${text}`
       else if (text.length > 2000) maxTokens = 600;
 
       const response = await openaiClient.post('/chat/completions', {
-        model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
+        model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
