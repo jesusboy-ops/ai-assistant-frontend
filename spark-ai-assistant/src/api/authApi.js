@@ -9,7 +9,7 @@ export const authApi = {
       password,
       name
     }, {
-      timeout: 2000 // ULTRA FAST 2 second timeout
+      timeout: 8000 // 8 seconds for production
     });
     return response.data;
   },
@@ -23,7 +23,7 @@ export const authApi = {
         email,
         password
       }, {
-        timeout: 2000, // ULTRA FAST 2 second timeout
+        timeout: 8000, // 8 seconds for production
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'

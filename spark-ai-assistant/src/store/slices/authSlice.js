@@ -9,9 +9,9 @@ export const loginUser = createAsyncThunk(
     try {
       console.log('🔄 Starting login process...');
       
-      // Create a timeout promise - ULTRA FAST 2 seconds
+      // Create a timeout promise - 8 seconds for production
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Login timeout')), 2000);
+        setTimeout(() => reject(new Error('Login timeout')), 8000);
       });
 
       // Create the login promise
@@ -52,9 +52,9 @@ export const registerUser = createAsyncThunk(
     try {
       console.log('🔄 Starting registration process...');
       
-      // Create a timeout promise - ULTRA FAST 2 seconds
+      // Create a timeout promise - 8 seconds for production
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Registration timeout')), 2000);
+        setTimeout(() => reject(new Error('Registration timeout')), 8000);
       });
 
       // Create the registration promise
