@@ -12,7 +12,6 @@ import {
   ListItemText,
   ListItemIcon,
   Chip,
-  CircularProgress,
   Tabs,
   Tab,
   IconButton,
@@ -35,6 +34,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { searchApi } from '../api/searchApi';
 import { showToast } from '../utils/toast';
+import LoadingSpinner from './LoadingSpinner';
 
 const UnifiedSearch = ({ open, onClose }) => {
   const navigate = useNavigate();
@@ -351,7 +351,7 @@ const UnifiedSearch = ({ open, onClose }) => {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  {loading && <CircularProgress size={20} />}
+                  {loading && <LoadingSpinner size={20} type="modern" />}
                   <IconButton onClick={onClose} size="small">
                     <CloseIcon />
                   </IconButton>
@@ -391,7 +391,7 @@ const UnifiedSearch = ({ open, onClose }) => {
                   }
                 },
                 '& .MuiTabs-indicator': {
-                  backgroundColor: '#06b6d4'
+                  backgroundColor: '#ffffff'
                 }
               }}
             >

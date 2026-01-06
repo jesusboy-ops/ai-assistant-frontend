@@ -17,9 +17,9 @@ import {
   Avatar,
   Fade,
   Grow,
-  CircularProgress,
   Alert
 } from '@mui/material';
+import LoadingSpinner from './LoadingSpinner';
 import {
   Notifications as NotificationsIcon,
   NotificationsNone as NotificationsNoneIcon,
@@ -57,62 +57,11 @@ const NotificationCenter = () => {
   const [filter, setFilter] = useState('all'); // all, unread, tasks, reminders, system
 
   useEffect(() => {
-    // Load notifications on mount
-    loadNotifications();
-    
-    // Set up polling for new notifications
-    const interval = setInterval(loadNotifications, 30000); // Poll every 30 seconds
-    
-    return () => clearInterval(interval);
+    // No mock notifications - only real system notifications will be added
+    // through the notification service when actual events occur
   }, []);
 
-  const loadNotifications = async () => {
-    // Mock notifications for now - replace with actual API call
-    const mockNotifications = [
-      {
-        id: '1',
-        type: 'task',
-        title: 'Task Due Soon',
-        message: 'Complete project proposal by 5 PM today',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        read: false,
-        priority: 'high',
-        actionUrl: '/tasks'
-      },
-      {
-        id: '2',
-        type: 'reminder',
-        title: 'Meeting Reminder',
-        message: 'Team standup in 15 minutes',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
-        read: false,
-        priority: 'medium',
-        actionUrl: '/calendar'
-      },
-      {
-        id: '3',
-        type: 'system',
-        title: 'Backup Complete',
-        message: 'Your data has been successfully backed up',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-        read: true,
-        priority: 'low',
-        actionUrl: '/settings'
-      },
-      {
-        id: '4',
-        type: 'chat',
-        title: 'New AI Response',
-        message: 'Spark AI has responded to your question about React hooks',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        read: false,
-        priority: 'medium',
-        actionUrl: '/chat'
-      }
-    ];
-    
-    dispatch(setNotifications(mockNotifications));
-  };
+  // Remove the loadNotifications function since we don't want mock notifications
 
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -355,8 +304,8 @@ const NotificationCenter = () => {
             {[
               { key: 'all', label: 'All', count: notifications.length },
               { key: 'unread', label: 'Unread', count: unreadCount },
-              { key: 'tasks', label: 'Tasks', count: notifications.filter(n => n.type === 'task').length },
-              { key: 'reminders', label: 'Events', count: notifications.filter(n => n.type === 'reminder' || n.type === 'event').length }
+              { key: 'chat', label: 'Chat', count: notifications.filter(n => n.type === 'chat').length },
+              { key: 'system', label: 'System', count: notifications.filter(n => n.type === 'system' || n.type === 'success' || n.type === 'error').length }
             ].map((tab) => (
               <Chip
                 key={tab.key}
@@ -367,11 +316,11 @@ const NotificationCenter = () => {
                 sx={{
                   fontSize: '0.75rem',
                   fontWeight: 600,
-                  backgroundColor: filter === tab.key ? '#667eea' : 'transparent',
-                  color: filter === tab.key ? 'white' : 'text.secondary',
-                  borderColor: filter === tab.key ? '#667eea' : 'rgba(102, 126, 234, 0.3)',
+                  backgroundColor: filter === tab.key ? '#ffffff' : 'transparent',
+                  color: filter === tab.key ? '#000000' : '#cccccc',
+                  borderColor: filter === tab.key ? '#ffffff' : 'rgba(255, 255, 255, 0.3)',
                   '&:hover': {
-                    backgroundColor: filter === tab.key ? '#5a67d8' : 'rgba(102, 126, 234, 0.1)'
+                    backgroundColor: filter === tab.key ? '#cccccc' : 'rgba(255, 255, 255, 0.1)'
                   }
                 }}
               />
@@ -383,7 +332,7 @@ const NotificationCenter = () => {
         <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={24} />
+              <LoadingSpinner size={24} type="modern" />
             </Box>
           ) : filteredNotifications.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, Button, Card, Fade, Grow } from '@mui/material';
+import { Box, Typography, Card, Fade, Grow, useTheme } from '@mui/material';
 import {
   AutoAwesome as SparkIcon,
   Chat as ChatIcon,
@@ -10,6 +10,7 @@ import {
 } from '@mui/icons-material';
 
 const WelcomeMessage = ({ onStartChat }) => {
+  const theme = useTheme();
   const suggestions = [
     {
       icon: <IdeaIcon />,
@@ -52,12 +53,9 @@ const WelcomeMessage = ({ onStartChat }) => {
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        p: { xs: 2, sm: 3, md: 4 },
+        p: { xs: 3, sm: 4, md: 6 },
         maxWidth: { xs: '100%', sm: 600, md: 700 },
-        mx: 'auto',
-        // Ensure proper spacing and prevent overflow
-        minHeight: 'fit-content',
-        overflow: 'visible'
+        mx: 'auto'
       }}
     >
       {/* Main Welcome Section */}
@@ -65,91 +63,43 @@ const WelcomeMessage = ({ onStartChat }) => {
         <Box sx={{ mb: 6 }}>
           <Box
             sx={{
-              width: 120,
-              height: 120,
+              width: 80,
+              height: 80,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backgroundColor: theme.palette.primary.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mb: 3,
-              mx: 'auto',
-              animation: 'float 3s ease-in-out infinite',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: -10,
-                left: -10,
-                right: -10,
-                bottom: -10,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                opacity: 0.3,
-                animation: 'pulse 2s ease-in-out infinite',
-                zIndex: -1
-              }
+              mb: 4,
+              mx: 'auto'
             }}
           >
-            <SparkIcon sx={{ fontSize: 60, color: 'white' }} />
+            <SparkIcon sx={{ fontSize: 40, color: theme.palette.primary.contrastText }} />
           </Box>
           
           <Typography 
             variant="h3" 
             sx={{ 
               mb: 2,
-              fontWeight: 800,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
-              // Fallback for browsers that don't support gradient text
-              color: '#667eea',
-              // Ensure text is visible and not clipped - FIXED
-              lineHeight: 1.3,
-              textAlign: 'center',
-              wordBreak: 'normal',
-              whiteSpace: 'normal',
-              overflow: 'visible',
-              // Add text shadow for better visibility
-              textShadow: '0 2px 4px rgba(102, 126, 234, 0.3)',
-              // Ensure proper spacing and prevent cut-off
-              padding: '0.2em 0',
-              minHeight: 'fit-content'
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' }
             }}
           >
-            Welcome to Spark AI
-          </Typography>
-          
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              mb: 3,
-              color: 'rgba(255, 255, 255, 0.8)',
-              fontWeight: 400,
-              fontSize: { xs: '1.1rem', sm: '1.25rem' },
-              textAlign: 'center',
-              // Ensure subtitle is visible and responsive
-              lineHeight: 1.5,
-              maxWidth: '100%',
-              wordWrap: 'break-word',
-              overflow: 'visible'
-            }}
-          >
-            Your intelligent assistant is ready to help
+            How can I help you today?
           </Typography>
           
           <Typography 
             variant="body1" 
             sx={{ 
-              color: 'rgba(255, 255, 255, 0.6)',
-              lineHeight: 1.7,
-              fontSize: { xs: '0.95rem', sm: '1rem' }
+              color: theme.palette.text.secondary,
+              lineHeight: 1.6,
+              fontSize: { xs: '1rem', sm: '1.125rem' },
+              maxWidth: 500,
+              mx: 'auto'
             }}
           >
-            I can help you with coding, creative writing, problem-solving, learning new topics, 
-            and much more. What would you like to explore today?
+            I'm Spark AI, your intelligent assistant. I can help with coding, writing, analysis, and much more.
           </Typography>
         </Box>
       </Grow>
@@ -159,9 +109,9 @@ const WelcomeMessage = ({ onStartChat }) => {
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-          gap: 2,
+          gap: 3,
           width: '100%',
-          maxWidth: 500
+          maxWidth: 600
         }}
       >
         {suggestions.map((suggestion, index) => (
@@ -169,14 +119,15 @@ const WelcomeMessage = ({ onStartChat }) => {
             <Card
               sx={{
                 p: 3,
-                background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
-                border: '1px solid rgba(102, 126, 234, 0.3)',
+                backgroundColor: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 3,
                 cursor: 'pointer',
-                transition: 'all 0.3s ease',
+                transition: 'all 0.2s ease',
                 '&:hover': {
-                  transform: 'translateY(-4px) scale(1.02)',
-                  border: '1px solid rgba(6, 182, 212, 0.5)'
+                  transform: 'translateY(-2px)',
+                  borderColor: theme.palette.primary.main,
+                  backgroundColor: theme.palette.action?.hover || theme.palette.background.paper
                 }
               }}
               onClick={() => handleSuggestionClick(suggestion.prompt)}
@@ -186,16 +137,16 @@ const WelcomeMessage = ({ onStartChat }) => {
                   width: 48,
                   height: 48,
                   borderRadius: 2,
-                  background: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
+                  backgroundColor: theme.palette.primary.main,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   mb: 2,
                   mx: 'auto'
-                  }}
+                }}
               >
                 {React.cloneElement(suggestion.icon, { 
-                  sx: { color: 'white', fontSize: 24 } 
+                  sx: { color: theme.palette.primary.contrastText, fontSize: 24 } 
                 })}
               </Box>
               
@@ -203,9 +154,9 @@ const WelcomeMessage = ({ onStartChat }) => {
                 variant="h6"
                 sx={{
                   fontWeight: 600,
-                  color: 'white',
+                  color: 'rgba(255, 255, 255, 0.9)',
                   mb: 1,
-                  fontSize: '1.1rem'
+                  fontSize: '1rem'
                 }}
               >
                 {suggestion.title}
@@ -214,8 +165,8 @@ const WelcomeMessage = ({ onStartChat }) => {
               <Typography
                 variant="body2"
                 sx={{
-                  color: 'rgba(255, 255, 255, 0.7)',
-                  fontSize: '0.9rem'
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: '0.875rem'
                 }}
               >
                 {suggestion.description}
@@ -237,22 +188,6 @@ const WelcomeMessage = ({ onStartChat }) => {
           >
             Or start typing your own message below
           </Typography>
-          
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              justifyContent: 'center',
-              color: 'rgba(255, 255, 255, 0.4)',
-              fontSize: '0.9rem'
-            }}
-          >
-            <AIIcon sx={{ fontSize: 16 }} />
-            <Typography variant="caption">
-              Powered by advanced AI technology
-            </Typography>
-          </Box>
         </Box>
       </Fade>
     </Box>

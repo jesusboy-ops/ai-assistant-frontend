@@ -264,8 +264,8 @@ const PdfScanner = () => {
                               label={formatFileSize(file.size)}
                               size="small"
                               sx={{
-                                backgroundColor: alpha('#10b981', 0.2),
-                                color: '#10b981',
+                                backgroundColor: alpha('#667eea', 0.2),
+                                color: '#667eea',
                                 fontSize: '0.75rem'
                               }}
                             />
@@ -297,7 +297,7 @@ const PdfScanner = () => {
                           onClick={() => handleDownload(file)}
                           sx={{
                             color: '#10b981',
-                            '&:hover': { backgroundColor: alpha('#10b981', 0.1) }
+                            '&:hover': { backgroundColor: alpha('#667eea', 0.1) }
                           }}
                         >
                           <DownloadIcon />

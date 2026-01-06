@@ -16,11 +16,11 @@ import {
   Collapse,
   Avatar,
   Divider,
-  CircularProgress,
   Tooltip,
   Card,
   CardContent
 } from '@mui/material';
+import LoadingSpinner from './LoadingSpinner';
 import {
   Send as SendIcon,
   Mic as MicIcon,
@@ -478,12 +478,12 @@ const AIPersonalAssistant = ({
               />
               <Chip 
                 label={`${metadata.productivity.overview.completedTasks} tasks completed`}
-                color="success"
+                color="primary"
                 size="small"
               />
               <Chip 
                 label={`Score: ${metadata.productivity.overview.productivityScore}`}
-                color="info"
+                color="primary"
                 size="small"
               />
             </Box>
@@ -624,7 +624,7 @@ const AIPersonalAssistant = ({
           {isProcessing && (
             <ListItem>
               <ListItemIcon sx={{ minWidth: 40 }}>
-                <CircularProgress size={24} />
+                <LoadingSpinner size={24} type="modern" />
               </ListItemIcon>
               <ListItemText primary="Processing..." />
             </ListItem>

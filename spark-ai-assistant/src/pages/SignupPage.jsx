@@ -1,7 +1,5 @@
-// Simple Login page
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -20,15 +18,19 @@ import {
   AutoAwesome as SparkIcon
 } from '@mui/icons-material';
 import useAuth from '../hooks/useAuth';
-import { loginSuccess } from '../store/slices/authSlice';
-import toast from '../utils/toast';
-import { validateEmail, validateRequired } from '../utils/validators';
+import { validateEmail, validatePassword, validateConfirmPassword, validateName } from '../utils/validators';
 
-const Login = () => {
-  const { login, loading } = useAuth();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+const SignupPage = () => {
+  const { register, loading } = useAuth();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,33 +40,25 @@ const Login = () => {
 
   const validate = () => {
     const newErrors = {};
+    const nameError = validateName(formData.name);
     const emailError = validateEmail(formData.email);
-    const passwordError = validateRequired(formData.password, 'Password');
+    const passwordError = validatePassword(formData.password);
+    const confirmPasswordError = validateConfirmPassword(formData.password, formData.confirmPassword);
+
+    if (nameError) newErrors.name = nameError;
     if (emailError) newErrors.email = emailError;
     if (passwordError) newErrors.password = passwordError;
+    if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // EMERGENCY PRESENTATION MODE - bypasses backend
-  const presentationLogin = () => {
-    const mockUser = { id: '1', name: 'Presentation User', email: 'demo@spark.com' };
-    const mockToken = 'presentation-token-' + Date.now();
-    
-    localStorage.setItem('token', mockToken);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    
-    // Dispatch success immediately
-    dispatch(loginSuccess({ user: mockUser, token: mockToken }));
-    toast.success('Presentation mode activated!');
-    navigate('/dashboard');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    try { 
-      await login(formData.email, formData.password); 
+    try {
+      await register(formData.email, formData.password, formData.name);
     } catch (error) {
       // Error handling is done in the auth hook
     }
@@ -106,15 +100,40 @@ const Login = () => {
               </Typography>
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, color: 'white' }}>
-              Welcome back
+              Create your account
             </Typography>
             <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Sign in to your account
+              Get started with AI-powered productivity
             </Typography>
           </Box>
 
-          {/* Login Form */}
+          {/* Signup Form */}
           <Box component="form" onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Full Name"
+              name="name"
+              autoComplete="name"
+              value={formData.name}
+              onChange={handleChange}
+              error={Boolean(errors.name)}
+              helperText={errors.name}
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                  '&:hover fieldset': { borderColor: 'rgba(6, 182, 212, 0.5)' },
+                  '&.Mui-focused fieldset': { borderColor: '#06b6d4' }
+                },
+                '& .MuiInputLabel-root': { 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  '&.Mui-focused': { color: '#06b6d4' } 
+                },
+                '& .MuiInputBase-input': { color: 'white' }
+              }}
+            />
+
             <TextField
               fullWidth
               label="Email"
@@ -146,7 +165,7 @@ const Login = () => {
               label="Password"
               name="password"
               type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
+              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               error={Boolean(errors.password)}
@@ -182,20 +201,46 @@ const Login = () => {
               }}
             />
 
-            <Box sx={{ textAlign: 'right', mb: 3 }}>
-              <Link
-                component={RouterLink}
-                to="/forgot-password"
-                variant="body2"
-                sx={{
-                  color: '#06b6d4',
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' }
-                }}
-              >
-                Forgot password?
-              </Link>
-            </Box>
+            <TextField
+              fullWidth
+              label="Confirm Password"
+              name="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              error={Boolean(errors.confirmPassword)}
+              helperText={errors.confirmPassword}
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
+                  '&:hover fieldset': { borderColor: 'rgba(6, 182, 212, 0.5)' },
+                  '&.Mui-focused fieldset': { borderColor: '#06b6d4' }
+                },
+                '& .MuiInputLabel-root': { 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  '&.Mui-focused': { color: '#06b6d4' } 
+                },
+                '& .MuiInputBase-input': { color: 'white' }
+              }}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        edge="end"
+                        sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
+                }
+              }}
+            />
 
             <Button
               fullWidth
@@ -204,7 +249,7 @@ const Login = () => {
               disabled={loading}
               sx={{
                 py: 1.5,
-                mb: 3,
+                mb: 2,
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
@@ -215,17 +260,17 @@ const Login = () => {
                 position: 'relative'
               }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </Button>
           </Box>
 
-          {/* Sign up link */}
+          {/* Sign in link */}
           <Box sx={{ textAlign: 'center' }}>
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <Link
                 component={RouterLink}
-                to="/signup"
+                to="/login"
                 sx={{ 
                   color: '#06b6d4', 
                   fontWeight: 600, 
@@ -233,7 +278,7 @@ const Login = () => {
                   '&:hover': { textDecoration: 'underline' } 
                 }}
               >
-                Sign up
+                Sign in
               </Link>
             </Typography>
           </Box>
@@ -243,4 +288,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignupPage;

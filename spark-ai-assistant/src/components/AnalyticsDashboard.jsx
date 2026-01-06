@@ -18,7 +18,6 @@ import {
   ListItemText,
   ListItemIcon,
   LinearProgress,
-  CircularProgress,
   Divider,
   IconButton,
   Tooltip,
@@ -28,6 +27,7 @@ import {
   DialogActions,
   TextField
 } from '@mui/material';
+import LoadingSpinner from './LoadingSpinner';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -387,11 +387,10 @@ const AnalyticsDashboard = () => {
                 Consistency Score
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <CircularProgress 
-                  variant="determinate" 
-                  value={insights.productivityPatterns.consistencyScore} 
+                <LoadingSpinner 
                   size={60}
-                  sx={{ color: colors.success }}
+                  type="modern"
+                  color="#10b981"
                 />
                 <Typography variant="h6">
                   {insights.productivityPatterns.consistencyScore}%
@@ -423,8 +422,8 @@ const AnalyticsDashboard = () => {
               <ListItem key={index} divider={index < recommendations.length - 1}>
                 <ListItemIcon>
                   {rec.priority >= 8 ? <WarningIcon color="error" /> :
-                   rec.priority >= 6 ? <InfoIcon color="warning" /> :
-                   <SuccessIcon color="success" />}
+                   rec.priority >= 6 ? <InfoIcon sx={{ color: '#f59e0b' }} /> :
+                   <SuccessIcon sx={{ color: 'rgba(255, 255, 255, 0.6)' }} />}
                 </ListItemIcon>
                 <ListItemText 
                   primary={rec.message}
@@ -479,7 +478,11 @@ const AnalyticsDashboard = () => {
               {calendarInsights.conflicts > 0 && (
                 <Chip 
                   label={`${calendarInsights.conflicts} conflicts detected`}
-                  color="warning"
+                  sx={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    color: '#f59e0b'
+                  }}
                   size="small"
                 />
               )}
@@ -541,7 +544,7 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
-        <CircularProgress />
+        <LoadingSpinner size={40} type="modern" />
       </Box>
     );
   }

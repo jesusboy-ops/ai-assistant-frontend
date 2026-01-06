@@ -10,31 +10,30 @@ import {
   Switch,
   FormControlLabel,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip
+  Container,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
-import {
-  Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon,
-  BrightnessAuto as AutoModeIcon
-} from '@mui/icons-material';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useState } from 'react';
+import { persistor } from '../store/store';
 import toast from '../utils/toast';
 import PageHeader from '../components/PageHeader';
-import { useThemeMode } from '../contexts/ThemeContext';
 
 const Settings = () => {
   const { user } = useSelector((state) => state.auth);
-  const { mode, setThemeMode, isDark } = useThemeMode();
+  const dispatch = useDispatch();
+  const [showResetDialog, setShowResetDialog] = useState(false);
   
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
-    notifications: true
+    notifications: true,
+    autoSave: true,
+    emailNotifications: true,
+    pushNotifications: false
   });
 
   const handleChange = (e) => {
@@ -49,237 +48,365 @@ const Settings = () => {
     toast.success('Settings saved successfully');
   };
 
-  const handleThemeChange = (newMode) => {
-    setThemeMode(newMode);
-    toast.success(`Theme changed to ${newMode} mode`);
-  };
-
-  const getThemeIcon = (themeMode) => {
-    switch (themeMode) {
-      case 'light':
-        return <LightModeIcon />;
-      case 'dark':
-        return <DarkModeIcon />;
-      case 'auto':
-        return <AutoModeIcon />;
-      default:
-        return <DarkModeIcon />;
+  const handleResetSettings = async () => {
+    try {
+      // Clear all persisted data
+      await persistor.purge();
+      
+      // Reset form to defaults
+      setFormData({
+        name: user?.name || '',
+        email: user?.email || '',
+        notifications: true,
+        autoSave: true,
+        emailNotifications: true,
+        pushNotifications: false
+      });
+      
+      toast.success('Settings reset successfully');
+      setShowResetDialog(false);
+      
+      // Optionally reload the page to ensure clean state
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (error) {
+      toast.error('Failed to reset settings');
     }
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
+    <Container maxWidth="lg" sx={{ py: 3 }}>
       <PageHeader
         title="Settings"
         subtitle="Manage your account and preferences"
       />
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         {/* Profile Settings */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <Card
             sx={{
               background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: 3
-              }}
+              borderRadius: 3,
+              height: 'fit-content'
+            }}
           >
-            <CardContent sx={{ padding: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, marginBottom: 3 }}>
-                Profile Settings
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'primary.main' }}>
+                Profile Information
               </Typography>
 
-              <TextField
-                fullWidth
-                label="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                sx={{ marginBottom: 2 }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
 
-              <TextField
-                fullWidth
-                label="Email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                sx={{ marginBottom: 3 }}
-              />
+                <TextField
+                  fullWidth
+                  label="Email Address"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  variant="outlined"
+                />
 
-              <Button
-                variant="contained"
-                onClick={handleSave}
-                sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
-                  }
-                }}
-              >
-                Save Changes
-              </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleSave}
+                  size="large"
+                  sx={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
+                    },
+                    py: 1.5
+                  }}
+                >
+                  Save Profile Changes
+                </Button>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Preferences */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        {/* Notification Preferences */}
+        <Grid item xs={12} md={6}>
           <Card
             sx={{
               background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
               border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: 3
-              }}
+              borderRadius: 3,
+              height: 'fit-content'
+            }}
           >
-            <CardContent sx={{ padding: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, marginBottom: 3 }}>
-                Appearance & Preferences
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'primary.main' }}>
+                Notification Preferences
               </Typography>
 
-              {/* Theme Selection */}
-              <Box sx={{ marginBottom: 3 }}>
-                <Typography variant="subtitle2" sx={{ marginBottom: 2, fontWeight: 600 }}>
-                  Theme Mode
-                </Typography>
-                <FormControl fullWidth sx={{ marginBottom: 2 }}>
-                  <InputLabel>Theme</InputLabel>
-                  <Select
-                    value={mode}
-                    onChange={(e) => handleThemeChange(e.target.value)}
-                    label="Theme"
-                    startAdornment={getThemeIcon(mode)}
-                  >
-                    <MenuItem value="light">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LightModeIcon />
-                        Light Mode
-                      </Box>
-                    </MenuItem>
-                    <MenuItem value="dark">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <DarkModeIcon />
-                        Dark Mode
-                      </Box>
-                    </MenuItem>
-                    <MenuItem value="auto">
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <AutoModeIcon />
-                        Auto (System)
-                      </Box>
-                    </MenuItem>
-                  </Select>
-                </FormControl>
-                
-                <Box sx={{ display: 'flex', gap: 1, marginBottom: 2 }}>
-                  <Chip
-                    label={`Current: ${isDark ? 'Dark' : 'Light'}`}
-                    color={isDark ? 'primary' : 'secondary'}
-                    size="small"
-                    icon={isDark ? <DarkModeIcon /> : <LightModeIcon />}
-                  />
-                  {mode === 'auto' && (
-                    <Chip
-                      label="Following system preference"
-                      variant="outlined"
-                      size="small"
-                      icon={<AutoModeIcon />}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.notifications}
+                      onChange={handleChange}
+                      name="notifications"
+                      color="primary"
                     />
-                  )}
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body1">General Notifications</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Receive notifications about app updates and features
+                      </Typography>
+                    </Box>
+                  }
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.emailNotifications}
+                      onChange={handleChange}
+                      name="emailNotifications"
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body1">Email Notifications</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Get important updates via email
+                      </Typography>
+                    </Box>
+                  }
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.pushNotifications}
+                      onChange={handleChange}
+                      name="pushNotifications"
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body1">Push Notifications</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Receive browser push notifications
+                      </Typography>
+                    </Box>
+                  }
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.autoSave}
+                      onChange={handleChange}
+                      name="autoSave"
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box>
+                      <Typography variant="body1">Auto-save</Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Automatically save your work
+                      </Typography>
+                    </Box>
+                  }
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Security Settings */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              borderRadius: 3,
+              height: 'fit-content'
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'primary.main' }}>
+                Security Settings
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <TextField
+                  fullWidth
+                  label="Current Password"
+                  type="password"
+                  variant="outlined"
+                />
+
+                <TextField
+                  fullWidth
+                  label="New Password"
+                  type="password"
+                  variant="outlined"
+                />
+
+                <TextField
+                  fullWidth
+                  label="Confirm New Password"
+                  type="password"
+                  variant="outlined"
+                />
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  sx={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
+                    },
+                    py: 1.5
+                  }}
+                >
+                  Update Password
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Account Management */}
+        <Grid item xs={12} md={6}>
+          <Card
+            sx={{
+              background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              borderRadius: 3,
+              height: 'fit-content'
+            }}
+          >
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'primary.main' }}>
+                Account Management
+              </Typography>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box>
+                  <Typography variant="body1" sx={{ mb: 1 }}>
+                    Export Data
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                    Download all your data in JSON format
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="large"
+                    fullWidth
+                    sx={{
+                      borderColor: 'primary.main',
+                      color: 'primary.main',
+                      '&:hover': {
+                        borderColor: 'primary.dark',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)'
+                      }
+                    }}
+                  >
+                    Export My Data
+                  </Button>
+                </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box>
+                  <Typography variant="body1" sx={{ mb: 1, color: 'warning.main' }}>
+                    Reset Settings
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                    Reset all app settings and clear stored data. This will not delete your account.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="warning"
+                    size="large"
+                    fullWidth
+                    onClick={() => setShowResetDialog(true)}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 152, 0, 0.1)'
+                      }
+                    }}
+                  >
+                    Reset All Settings
+                  </Button>
+                </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box>
+                  <Typography variant="body1" sx={{ mb: 1, color: 'error.main' }}>
+                    Danger Zone
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+                    This action cannot be undone. All your data will be permanently deleted.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    size="large"
+                    fullWidth
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)'
+                      }
+                    }}
+                  >
+                    Delete Account
+                  </Button>
                 </Box>
               </Box>
-
-              <Divider sx={{ marginY: 2 }} />
-
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.notifications}
-                    onChange={handleChange}
-                    name="notifications"
-                  />
-                }
-                label="Enable Notifications"
-                sx={{ marginBottom: 2, display: 'block' }}
-              />
-
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={true}
-                    disabled
-                  />
-                }
-                label="Auto-save (Always enabled)"
-                sx={{ marginBottom: 2, display: 'block' }}
-              />
-
-              <Divider sx={{ marginY: 3 }} />
-
-              <Typography variant="subtitle2" sx={{ marginBottom: 2, color: 'text.secondary' }}>
-                Danger Zone
-              </Typography>
-
-              <Button
-                variant="outlined"
-                color="error"
-                fullWidth
-              >
-                Delete Account
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Password Change */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card
-            sx={{
-              background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
-              border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: 3
-              }}
-          >
-            <CardContent sx={{ padding: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600, marginBottom: 3 }}>
-                Change Password
-              </Typography>
-
-              <TextField
-                fullWidth
-                label="Current Password"
-                type="password"
-                sx={{ marginBottom: 2 }}
-              />
-
-              <TextField
-                fullWidth
-                label="New Password"
-                type="password"
-                sx={{ marginBottom: 2 }}
-              />
-
-              <TextField
-                fullWidth
-                label="Confirm New Password"
-                type="password"
-                sx={{ marginBottom: 3 }}
-              />
-
-              <Button
-                variant="contained"
-                sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                }}
-              >
-                Update Password
-              </Button>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-    </Box>
+
+      {/* Reset Settings Dialog */}
+      <Dialog open={showResetDialog} onClose={() => setShowResetDialog(false)}>
+        <DialogTitle>Reset All Settings</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to reset all settings? This will:
+          </Typography>
+          <Box component="ul" sx={{ mt: 2, pl: 2 }}>
+            <li>Clear all stored tasks and reminders</li>
+            <li>Reset all preferences to defaults</li>
+            <li>Clear cached data</li>
+            <li>Keep your account and login intact</li>
+          </Box>
+          <Typography sx={{ mt: 2, color: 'warning.main' }}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowResetDialog(false)}>Cancel</Button>
+          <Button onClick={handleResetSettings} color="warning" variant="contained">
+            Reset Settings
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container>
   );
 };
 

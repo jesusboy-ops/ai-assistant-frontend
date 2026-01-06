@@ -7,10 +7,10 @@ import {
   TextField,
   Button,
   Typography,
-  CircularProgress,
   InputAdornment,
   IconButton
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import authApi from '../api/authApi';
 import { validatePassword, validateConfirmPassword } from '../utils/validators';
@@ -155,7 +155,7 @@ const ResetPassword = () => {
               }
             }}
           >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Reset Password'}
+            {loading ? <LoadingSpinner size={20} type="modern" color="white" /> : 'Reset Password'}
           </Button>
         </form>
       </Card>

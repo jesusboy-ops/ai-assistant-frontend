@@ -17,8 +17,7 @@ const useGoogleAuth = () => {
     }
 
     try {
-      // TEMPORARY FIX: Generate OAuth URL directly on frontend
-      // This bypasses the backend URL generation issue
+      // Use the exact current URL for redirect URI to match what's registered
       const redirectUri = `${window.location.origin}/auth/google/callback`;
       const scope = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
       
@@ -31,10 +30,6 @@ const useGoogleAuth = () => {
       authUrl.searchParams.set('prompt', 'select_account');
 
       console.log('Starting Google OAuth flow with redirect URI:', redirectUri);
-      console.log('Generated OAuth URL:', authUrl.toString());
-      
-      // DEBUG: Alert to confirm we're using the frontend-generated URL
-      alert(`Using frontend OAuth URL: ${authUrl.toString().substring(0, 100)}...`);
       
       // Redirect to the OAuth URL
       window.location.href = authUrl.toString();

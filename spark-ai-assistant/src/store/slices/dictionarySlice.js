@@ -6,11 +6,22 @@ import { dictionaryApi } from '../../api/dictionaryApi';
 export const searchWord = createAsyncThunk(
   'dictionary/searchWord',
   async (word, { rejectWithValue }) => {
-    const result = await dictionaryApi.searchWord(word);
-    if (!result.success) {
-      return rejectWithValue(result.error);
+    try {
+      console.log(`🔄 Starting dictionary search for: "${word}"`);
+      const result = await dictionaryApi.searchWord(word);
+      if (!result.success) {
+        console.error('❌ Dictionary search failed:', result.error);
+        return rejectWithValue(result.error);
+      }
+      console.log('✅ Dictionary search successful');
+      return { word, data: result.data };
+    } catch (error) {
+      console.error('❌ Dictionary search error:', error);
+      const errorMessage = error.code === 'ECONNABORTED' || error.message.includes('timeout')
+        ? 'Dictionary search timed out. Please try again.'
+        : error.message || 'Dictionary search failed';
+      return rejectWithValue(errorMessage);
     }
-    return { word, data: result.data };
   }
 );
 

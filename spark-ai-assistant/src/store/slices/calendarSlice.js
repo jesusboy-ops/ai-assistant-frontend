@@ -1,85 +1,190 @@
-// Calendar slice - manages calendar events
-import { createSlice } from '@reduxjs/toolkit';
+// Calendar Redux slice
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import calendarApi from '../../api/calendarApi';
 
-// Load events from localStorage
-const loadEventsFromStorage = () => {
-  try {
-    const savedEvents = localStorage.getItem('spark_calendar_events');
-    return savedEvents ? JSON.parse(savedEvents) : [];
-  } catch (error) {
-    console.error('Error loading events from localStorage:', error);
-    return [];
+// Async thunks
+export const fetchEvents = createAsyncThunk(
+  'calendar/fetchEvents',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await calendarApi.getEvents();
+      if (response.success) {
+        const events = response.data || [];
+        return Array.isArray(events) ? events : [];
+      } else {
+        return rejectWithValue(response.error || 'Failed to fetch events');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch events');
+    }
   }
-};
+);
 
-// Save events to localStorage
-const saveEventsToStorage = (events) => {
-  try {
-    localStorage.setItem('spark_calendar_events', JSON.stringify(events));
-  } catch (error) {
-    console.error('Error saving events to localStorage:', error);
+export const createEvent = createAsyncThunk(
+  'calendar/createEvent',
+  async (eventData, { rejectWithValue }) => {
+    try {
+      const response = await calendarApi.createEvent(eventData);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to create event');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to create event');
+    }
   }
-};
+);
+
+export const updateEvent = createAsyncThunk(
+  'calendar/updateEvent',
+  async ({ id, updates }, { rejectWithValue }) => {
+    try {
+      const response = await calendarApi.updateEvent(id, updates);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to update event');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update event');
+    }
+  }
+);
+
+export const deleteEvent = createAsyncThunk(
+  'calendar/deleteEvent',
+  async (eventId, { rejectWithValue }) => {
+    try {
+      const response = await calendarApi.deleteEvent(eventId);
+      if (response.success) {
+        return eventId;
+      } else {
+        return rejectWithValue(response.error || 'Failed to delete event');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to delete event');
+    }
+  }
+);
 
 const initialState = {
-  events: loadEventsFromStorage(),
-  view: 'month', // month, week, day
-  selectedDate: new Date().toISOString(),
+  events: [],
   loading: false,
-  error: null
+  error: null,
+  currentDate: new Date().toISOString().split('T')[0],
+  view: 'month', // month, week, day
+  selectedEvent: null
 };
 
 const calendarSlice = createSlice({
   name: 'calendar',
   initialState,
   reducers: {
-    setEvents: (state, action) => {
-      state.events = action.payload;
-      saveEventsToStorage(state.events);
-    },
-    addEvent: (state, action) => {
-      state.events.push(action.payload);
-      saveEventsToStorage(state.events);
-    },
-    updateEvent: (state, action) => {
-      const index = state.events.findIndex(e => e.id === action.payload.id);
-      if (index !== -1) {
-        state.events[index] = { ...state.events[index], ...action.payload };
-        saveEventsToStorage(state.events);
-      }
-    },
-    deleteEvent: (state, action) => {
-      state.events = state.events.filter(e => e.id !== action.payload);
-      saveEventsToStorage(state.events);
+    setCurrentDate: (state, action) => {
+      state.currentDate = action.payload;
     },
     setView: (state, action) => {
       state.view = action.payload;
     },
-    setSelectedDate: (state, action) => {
-      state.selectedDate = action.payload;
-    },
-    setLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
+    setSelectedEvent: (state, action) => {
+      state.selectedEvent = action.payload;
     },
     clearError: (state) => {
       state.error = null;
+    },
+    // Local event management
+    addEventLocal: (state, action) => {
+      state.events.push({
+        ...action.payload,
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        isLocal: true
+      });
+    },
+    updateEventLocal: (state, action) => {
+      const { id, updates } = action.payload;
+      const eventIndex = state.events.findIndex(event => event.id === id);
+      if (eventIndex !== -1) {
+        state.events[eventIndex] = { ...state.events[eventIndex], ...updates };
+      }
+    },
+    deleteEventLocal: (state, action) => {
+      state.events = state.events.filter(event => event.id !== action.payload);
     }
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch events
+      .addCase(fetchEvents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEvents.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events = Array.isArray(action.payload) ? action.payload : [];
+      })
+      .addCase(fetchEvents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        // Ensure events remains an array even on error
+        if (!Array.isArray(state.events)) {
+          state.events = [];
+        }
+      })
+      // Create event
+      .addCase(createEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createEvent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events.push(action.payload);
+      })
+      .addCase(createEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Update event
+      .addCase(updateEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateEvent.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.events.findIndex(event => event.id === action.payload.id);
+        if (index !== -1) {
+          state.events[index] = action.payload;
+        }
+      })
+      .addCase(updateEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Delete event
+      .addCase(deleteEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteEvent.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events = state.events.filter(event => event.id !== action.payload);
+      })
+      .addCase(deleteEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   }
 });
 
 export const {
-  setEvents,
-  addEvent,
-  updateEvent,
-  deleteEvent,
+  setCurrentDate,
   setView,
-  setSelectedDate,
-  setLoading,
-  setError,
-  clearError
+  setSelectedEvent,
+  clearError,
+  addEventLocal,
+  updateEventLocal,
+  deleteEventLocal
 } = calendarSlice.actions;
 
 export default calendarSlice.reducer;

@@ -9,9 +9,9 @@ import {
   IconButton,
   Alert,
   Chip,
-  Divider,
-  CircularProgress
+  Divider
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
@@ -111,7 +111,7 @@ const SharedNote = () => {
           background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
         }}
       >
-        <CircularProgress sx={{ color: '#06b6d4' }} />
+        <LoadingSpinner size={40} type="modern" color="#ffffff" />
       </Box>
     );
   }
@@ -176,8 +176,8 @@ const SharedNote = () => {
         {/* Note Card */}
         <Card
           sx={{
-            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.9) 0%, rgba(26, 26, 46, 0.9) 100%)',
-            border: '1px solid rgba(6, 182, 212, 0.3)',
+            background: '#1a1a1a',
+            border: '1px solid #555555',
             borderRadius: 3
             }}
         >
@@ -199,7 +199,7 @@ const SharedNote = () => {
                     <Chip
                       label="Public"
                       size="small"
-                      color="success"
+                      color="primary"
                     />
                   )}
                 </Box>
@@ -286,9 +286,9 @@ const SharedNote = () => {
                   variant="contained"
                   startIcon={<EditIcon />}
                   sx={{
-                    background: 'linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%)',
+                    background: '#2d2d2d',
                     '&:hover': {
-                      background: 'linear-gradient(135deg, #0891b2 0%, #7c3aed 100%)'
+                      background: '#404040'
                     }
                   }}
                 >
@@ -308,9 +308,9 @@ const SharedNote = () => {
             variant="contained"
             href="/"
             sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: '#2d2d2d',
               '&:hover': {
-                background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
+                background: '#404040'
               }
             }}
           >

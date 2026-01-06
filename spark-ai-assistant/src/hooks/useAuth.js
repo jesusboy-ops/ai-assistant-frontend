@@ -1,7 +1,15 @@
 // Custom hook for authentication
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { loginStart, loginSuccess, loginFailure, logout as logoutAction } from '../store/slices/authSlice';
+import { 
+  loginStart, 
+  loginSuccess, 
+  loginFailure, 
+  logout as logoutAction,
+  loginUser,
+  registerUser,
+  forgotPasswordRequest
+} from '../store/slices/authSlice';
 import authApi from '../api/authApi';
 import toast from '../utils/toast';
 
@@ -10,86 +18,54 @@ export const useAuth = () => {
   const navigate = useNavigate();
   const { user, token, isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
-  // Login function
+  // Login function using async thunk
   const login = async (email, password) => {
     try {
-      console.log('🔐 Attempting login for:', email);
-      dispatch(loginStart());
+      console.log('🔐 Starting login process...');
+      const result = await dispatch(loginUser({ email, password })).unwrap();
       
-      const data = await authApi.login(email, password);
-      console.log('✅ Login successful for:', email);
-      
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
-      
-      dispatch(loginSuccess(data));
       toast.success('Login successful!');
       navigate('/dashboard');
+      return result;
     } catch (err) {
-      console.log('❌ Login failed for:', email, err);
-      let message = 'Login failed';
-      
-      if (err.code === 'ERR_NETWORK') {
-        message = 'Cannot connect to server. Please check your internet connection.';
-        console.log('🔌 Network error during login - server unreachable');
-      } else if (err.response?.data?.message) {
-        message = err.response.data.message;
-      } else if (err.response?.status === 401) {
-        message = 'Invalid email or password';
-        console.log('🔑 Invalid credentials provided');
-      } else if (err.response?.status === 405) {
-        message = 'Server configuration error. Please contact support.';
-        console.log('🚫 Method not allowed - backend API issue');
-      } else if (err.response?.status >= 500) {
-        message = 'Server error. Please try again later.';
-        console.log('🔥 Server error during login:', err.response.status);
-      }
-      
-      dispatch(loginFailure(message));
-      toast.error(message);
-      throw err;
+      console.error('❌ Login failed:', err);
+      toast.error(err);
+      throw new Error(err);
     }
   };
 
-  // Register function
+  // Register function using async thunk
   const register = async (email, password, name) => {
     try {
-      dispatch(loginStart());
+      console.log('🔐 Starting registration process...');
+      const result = await dispatch(registerUser({ email, password, name })).unwrap();
       
-      const data = await authApi.register(email, password, name);
-      
-      // Store token in localStorage
-      localStorage.setItem('token', data.token);
-      
-      dispatch(loginSuccess(data));
       toast.success('Registration successful!');
       navigate('/dashboard');
+      return result;
     } catch (err) {
-      let message = 'Registration failed';
-      
-      if (err.code === 'ERR_NETWORK') {
-        if (err.message?.includes('CORS') || window.location.origin === 'http://localhost:5174') {
-          message = 'CORS Error: The backend server needs to allow requests from http://localhost:5174. Please update the backend CORS configuration.';
-        } else {
-          message = 'Cannot connect to server. Please check your internet connection.';
-        }
-      } else if (err.response?.data?.message) {
-        message = err.response.data.message;
-      } else if (err.response?.status === 400) {
-        message = 'Invalid registration data. Please check your inputs.';
-      } else if (err.response?.status === 409) {
-        message = 'Email already exists. Please use a different email.';
-      } else if (err.response?.status >= 500) {
-        message = 'Server error. Please try again later.';
-      }
-      
-      dispatch(loginFailure(message));
-      toast.error(message);
-      throw err;
+      console.error('❌ Registration failed:', err);
+      toast.error(err);
+      throw new Error(err);
     }
   };
 
-  // Google login function
+  // Forgot password function using async thunk
+  const forgotPassword = async (email) => {
+    try {
+      console.log('🔐 Starting forgot password process...');
+      const result = await dispatch(forgotPasswordRequest(email)).unwrap();
+      
+      toast.success('Password reset email sent!');
+      return result;
+    } catch (err) {
+      console.error('❌ Forgot password failed:', err);
+      toast.error(err);
+      throw new Error(err);
+    }
+  };
+
+  // Google login function (keeping original implementation)
   const googleLogin = async (tokenOrIdToken, userData = null) => {
     try {
       dispatch(loginStart());
@@ -100,7 +76,13 @@ export const useAuth = () => {
         data = { token: tokenOrIdToken, user: userData };
       } else {
         // If only token is provided, call the backend API
-        data = await authApi.googleLogin(tokenOrIdToken);
+        // Add timeout handling
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Google login timeout')), 10000);
+        });
+        
+        const loginPromise = authApi.googleLogin(tokenOrIdToken);
+        data = await Promise.race([loginPromise, timeoutPromise]);
       }
       
       // Store token in localStorage
@@ -110,23 +92,40 @@ export const useAuth = () => {
       toast.success('Login successful!');
       navigate('/dashboard');
     } catch (err) {
-      const message = err.response?.data?.message || 'Google login failed';
+      let message = 'Google login failed';
+      
+      if (err.message === 'Google login timeout') {
+        message = 'Google login timed out. Please try again.';
+      } else if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        message = 'Connection timed out. Please try again.';
+      } else if (err.response?.data?.message) {
+        message = err.response.data.message;
+      }
+      
       dispatch(loginFailure(message));
       toast.error(message);
       throw err;
     }
   };
 
-  // Check if current token is valid
+  // Check if current token is valid (with timeout)
   const checkAuthStatus = async () => {
     try {
       if (!token) return false;
       
-      const data = await authApi.getProfile();
+      // Add timeout handling
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Auth check timeout')), 3000); // Reduced to 3 seconds
+      });
+      
+      const profilePromise = authApi.getProfile();
+      const data = await Promise.race([profilePromise, timeoutPromise]);
+      
       dispatch(loginSuccess({ user: data, token }));
       return true;
     } catch (err) {
-      // Token is invalid, logout user
+      console.log('❌ Auth check failed:', err.message);
+      // Token is invalid or timed out, logout user
       logout();
       return false;
     }
@@ -139,7 +138,7 @@ export const useAuth = () => {
     
     dispatch(logoutAction());
     toast.info('Logged out successfully');
-    navigate('/');
+    navigate('/'); // Redirect to main page instead of login
   };
 
   return {
@@ -152,7 +151,8 @@ export const useAuth = () => {
     register,
     googleLogin,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
+    forgotPassword
   };
 };
 

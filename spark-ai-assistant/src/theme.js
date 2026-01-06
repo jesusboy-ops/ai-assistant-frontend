@@ -321,7 +321,7 @@ export const getStoredTheme = () => {
       return 'dark';
     }
   }
-  return 'dark'; // Default to dark
+  return 'light'; // Default to light theme
 };
 
 export const setStoredTheme = (theme) => {

@@ -1,22 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   Box,
-  Card,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
+  IconButton,
   useTheme,
   useMediaQuery,
   Fade,
-  Grow,
-  IconButton
+  Drawer
 } from '@mui/material';
 import {
-  AutoAwesome as SparkIcon,
-  MoreHoriz as MoreIcon
+  Menu as MenuIcon,
+  AutoAwesome as SparkIcon
 } from '@mui/icons-material';
 import { useChat } from '../hooks/useChat';
 import MessageBubble from '../components/chat/MessageBubble';
@@ -24,10 +18,14 @@ import TypingIndicator from '../components/chat/TypingIndicator';
 import ChatInput from '../components/chat/ChatInput';
 import ConversationList from '../components/chat/ConversationList';
 import WelcomeMessage from '../components/chat/WelcomeMessage';
+import StudyModeToggle from '../components/study/StudyModeToggle';
 
-const ChatNew = () => {
+const Chat = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  // More granular breakpoint control for better responsiveness
+  const isTablet = useMediaQuery('(max-width: 1100px)'); // Hide sidebar below 1100px
+  const isSmallDesktop = useMediaQuery('(max-width: 1350px)'); // Adjust layout for smaller desktops
   
   const {
     conversations,
@@ -43,8 +41,7 @@ const ChatNew = () => {
   } = useChat();
 
   const [messageInput, setMessageInput] = useState('');
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -66,8 +63,11 @@ const ChatNew = () => {
     if (sending) {
       setIsTyping(true);
     } else {
-      const timer = setTimeout(() => setIsTyping(false), 1000);
-      return () => clearTimeout(timer);
+      // Only hide typing indicator if we're not sending
+      if (!sending) {
+        const timer = setTimeout(() => setIsTyping(false), 500);
+        return () => clearTimeout(timer);
+      }
     }
   }, [sending]);
 
@@ -106,232 +106,274 @@ const ChatNew = () => {
 
   const handleConversationClick = (convId) => {
     loadConversation(convId);
+    if (isTablet) setSidebarOpen(false);
   };
 
   const handleNewChat = async () => {
     const newConv = await createConversation('New Conversation');
     await loadConversation(newConv.id);
+    if (isTablet) setSidebarOpen(false);
   };
 
   const handleDeleteConversation = (convId) => {
-    setConversationToDelete(convId);
-    setDeleteDialogOpen(true);
+    deleteConversation(convId);
   };
 
-  const confirmDelete = async () => {
-    if (conversationToDelete) {
-      await deleteConversation(conversationToDelete);
-    }
-    setDeleteDialogOpen(false);
-    setConversationToDelete(null);
-  };
+  // Sidebar component
+  const SidebarContent = () => (
+    <ConversationList
+      conversations={safeConversations}
+      activeConversation={activeConversation}
+      loading={loading}
+      onConversationClick={handleConversationClick}
+      onNewChat={handleNewChat}
+      onDeleteConversation={handleDeleteConversation}
+    />
+  );
 
   return (
     <Box 
       sx={{ 
         height: '100vh',
         display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 0, md: 2 },
-        p: { xs: 0, sm: 1, md: 2 },
-        background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
+        backgroundColor: theme.palette.background.default,
         overflow: 'hidden'
       }}
     >
-      {/* Conversations Sidebar */}
-      <Box 
-        sx={{ 
-          width: { xs: '100%', md: '320px' },
-          height: { xs: '35%', md: '100%' },
-          display: { xs: isMobile && activeConversation ? 'none' : 'block', md: 'block' },
-          mb: { xs: 1, md: 0 },
-          flexShrink: 0
+      {/* Desktop Sidebar - Only show on screens > 1100px */}
+      {!isTablet && (
+        <Box 
+          sx={{ 
+            width: isSmallDesktop ? 260 : 280, // Slightly narrower sidebar on smaller desktops
+            height: '100%',
+            borderRight: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+            flexShrink: 0
+          }}
+        >
+          <SidebarContent />
+        </Box>
+      )}
+
+      {/* Mobile/Tablet Drawer - Show on screens ≤ 1100px */}
+      <Drawer
+        anchor="left"
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        sx={{
+          display: isTablet ? 'block' : 'none',
+          '& .MuiDrawer-paper': {
+            width: 280,
+            backgroundColor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`
+          }
         }}
       >
-        <ConversationList
-          conversations={safeConversations}
-          activeConversation={activeConversation}
-          loading={loading}
-          onConversationClick={handleConversationClick}
-          onNewChat={handleNewChat}
-          onDeleteConversation={handleDeleteConversation}
-        />
-      </Box>
+        <SidebarContent />
+      </Drawer>
 
-      {/* Chat Area - ChatGPT Style */}
+      {/* Main Chat Area */}
       <Box 
         sx={{ 
           flex: 1,
-          height: { xs: activeConversation ? '65%' : '100%', md: '100%' },
           display: 'flex',
           flexDirection: 'column',
-          minHeight: 0,
-          maxWidth: { xs: '100%', md: '100%', lg: '900px' },
-          mx: { lg: 'auto' }
+          height: '100vh',
+          backgroundColor: theme.palette.background.default,
+          position: 'relative'
         }}
       >
-        <Card
+        {/* Chat Header - Mobile optimized */}
+        <Box
           sx={{
-            height: '100%',
+            height: { xs: 56, sm: 64 },
             display: 'flex',
-            flexDirection: 'column',
-            background: { 
-              xs: 'transparent', 
-              md: 'rgba(26, 32, 46, 0.4)' 
-            },
-            backdropFilter: { xs: 'none', md: 'blur(20px)' },
-            border: { xs: 'none', md: '1px solid rgba(255, 255, 255, 0.1)' },
-            borderRadius: { xs: 0, md: 3 },
-            boxShadow: { xs: 'none', md: '0 8px 32px rgba(0, 0, 0, 0.3)' },
-            overflow: 'hidden'
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            px: { xs: 1, sm: 2, md: 3 },
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+            flexShrink: 0,
+            zIndex: 10
           }}
         >
-          {/* Chat Header */}
-          <Box
-            sx={{
-              p: { xs: 2, sm: 3 },
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              background: 'rgba(26, 32, 46, 0.6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                  }}
-              >
-                <SparkIcon sx={{ color: 'white', fontSize: 20 }} />
-              </Box>
-              
-              <Box>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    fontWeight: 600,
-                    color: 'white',
-                    fontSize: '1rem'
-                  }}
-                >
-                  {activeConversation?.title || 'Spark AI'}
-                </Typography>
-                
-                {activeConversation && (
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      fontSize: '0.75rem'
-                    }}
-                  >
-                    Online
-                  </Typography>
-                )}
-              </Box>
-            </Box>
-
-            <IconButton
-              sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
-                '&:hover': {
-                  color: 'white',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                }
-              }}
-            >
-              <MoreIcon />
-            </IconButton>
-          </Box>
-
-          {/* Messages Area - ChatGPT Style */}
-          <Box 
-            sx={{ 
-              flex: 1,
-              overflowY: 'auto',
-              p: { xs: 1, sm: 2, md: 3 },
-              // ChatGPT-style wide container
-              maxWidth: { xs: '100%', sm: '100%', md: '800px', lg: '900px' },
-              mx: 'auto',
-              width: '100%',
-              '&::-webkit-scrollbar': {
-                width: '6px'
-              },
-              '&::-webkit-scrollbar-track': {
-                background: 'rgba(255, 255, 255, 0.1)',
-                borderRadius: '3px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: 'rgba(102, 126, 234, 0.5)',
-                borderRadius: '3px',
-                '&:hover': {
-                  background: 'rgba(102, 126, 234, 0.7)'
-                }
-              }
-            }}
-          >
-            {!activeConversation ? (
-              <WelcomeMessage onStartChat={handleStartChatWithPrompt} />
-            ) : safeMessages.length === 0 ? (
-              <Box
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center'
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flex: 1, minWidth: 0 }}>
+            {/* Mobile/Tablet menu button - Show on screens ≤ 1100px */}
+            {isTablet && (
+              <IconButton
+                onClick={() => setSidebarOpen(true)}
+                sx={{ 
+                  mr: { xs: 0.5, sm: 1 }, 
+                  color: theme.palette.text.secondary,
+                  p: { xs: 1, sm: 1.5 }
                 }}
               >
-                <Fade in timeout={600}>
-                  <Box>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        mb: 2,
-                        color: 'rgba(255, 255, 255, 0.8)'
-                      }}
-                    >
-                      Start the conversation
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      sx={{ 
-                        color: 'rgba(255, 255, 255, 0.6)'
-                      }}
-                    >
-                      Type a message below to begin chatting with Spark AI
-                    </Typography>
-                  </Box>
-                </Fade>
-              </Box>
-            ) : (
-              <Box>
-                {safeMessages.map((msg, index) => (
-                  <MessageBubble
-                    key={msg.id || index}
-                    message={msg.content}
-                    isUser={msg.role === 'user'}
-                    timestamp={msg.timestamp}
-                    isNew={index === safeMessages.length - 1}
-                  />
-                ))}
-                
-                {isTyping && <TypingIndicator />}
-                
-                <div ref={messagesEndRef} />
-              </Box>
+                <MenuIcon sx={{ fontSize: { xs: 20, sm: 24 } }} />
+              </IconButton>
             )}
+
+            <Box
+              sx={{
+                width: { xs: 28, sm: 32 },
+                height: { xs: 28, sm: 32 },
+                borderRadius: '50%',
+                backgroundColor: theme.palette.primary.main,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <SparkIcon sx={{ 
+                color: theme.palette.primary.contrastText, 
+                fontSize: { xs: 16, sm: 18 } 
+              }} />
+            </Box>
+            
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  fontWeight: 600,
+                  color: theme.palette.text.primary,
+                  fontSize: { xs: '0.9rem', sm: '1rem', md: '1.125rem' },
+                  lineHeight: 1.2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                Spark AI
+              </Typography>
+              {!isMobile && (
+                <Typography 
+                  variant="caption" 
+                  sx={{ 
+                    color: theme.palette.text.secondary,
+                    fontSize: { xs: '0.7rem', sm: '0.75rem' },
+                    display: 'block',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  How can I help you today?
+                </Typography>
+              )}
+            </Box>
           </Box>
 
-          {/* Chat Input */}
+          {/* Study Mode Toggle - Responsive */}
+          <Box sx={{ flexShrink: 0 }}>
+            <StudyModeToggle />
+          </Box>
+        </Box>
+
+        {/* Messages Area - Scrollable with space for fixed input */}
+        <Box 
+          sx={{ 
+            flex: 1,
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            pb: { xs: '100px', sm: '110px', md: '120px' }, // Space for fixed input
+            '&::-webkit-scrollbar': {
+              width: '6px'
+            },
+            '&::-webkit-scrollbar-track': {
+              background: theme.palette.action?.hover || 'rgba(255, 255, 255, 0.1)'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: theme.palette.text.disabled,
+              borderRadius: '3px',
+              '&:hover': {
+                background: theme.palette.text.secondary
+              }
+            }
+          }}
+        >
+          {!activeConversation ? (
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <WelcomeMessage onStartChat={handleStartChatWithPrompt} />
+            </Box>
+          ) : safeMessages.length === 0 ? (
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                p: 4
+              }}
+            >
+              <Fade in timeout={600}>
+                <Box>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      color: theme.palette.text.primary,
+                      fontWeight: 500
+                    }}
+                  >
+                    How can I help you today?
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: theme.palette.text.secondary
+                    }}
+                  >
+                    Type a message below to start our conversation
+                  </Typography>
+                </Box>
+              </Fade>
+            </Box>
+          ) : (
+            <Box sx={{ 
+              maxWidth: { 
+                xs: '100%', 
+                sm: '768px', 
+                md: isTablet ? '900px' : (isSmallDesktop ? '700px' : '800px') // Responsive max width
+              },
+              mx: 'auto',
+              width: '100%',
+              px: { xs: 2, sm: 3, md: isTablet ? 4 : 3 },
+              py: 3
+            }}>
+              {safeMessages.map((msg, index) => (
+                <MessageBubble
+                  key={msg.id || index}
+                  message={msg.content}
+                  isUser={msg.role === 'user'}
+                  timestamp={msg.timestamp}
+                  isNew={index === safeMessages.length - 1}
+                />
+              ))}
+              
+              {isTyping && <TypingIndicator />}
+              
+              <div ref={messagesEndRef} />
+            </Box>
+          )}
+        </Box>
+
+        {/* Fixed Chat Input - Centered within the chat container */}
+        <Box sx={{ 
+          position: 'absolute',
+          bottom: 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: { 
+            xs: 'calc(100% - 40px)', 
+            sm: 'min(600px, calc(100% - 60px))', 
+            md: 'min(700px, calc(100% - 80px))',
+            lg: 'min(750px, calc(100% - 100px))'
+          },
+          maxWidth: 'calc(100% - 40px)',
+          zIndex: 1000
+        }}>
           <ChatInput
             value={messageInput}
             onChange={(e) => setMessageInput(e.target.value)}
@@ -339,60 +381,12 @@ const ChatNew = () => {
             onKeyPress={handleKeyPress}
             disabled={loading}
             sending={sending}
-            placeholder={
-              isMobile 
-                ? "Message Spark AI..." 
-                : "Type your message to Spark AI..."
-            }
+            placeholder="Type a message..."
           />
-        </Card>
+        </Box>
       </Box>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog 
-        open={deleteDialogOpen} 
-        onClose={() => setDeleteDialogOpen(false)}
-        slotProps={{
-          paper: {
-            sx: {
-              background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
-              border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: 3
-            }
-          }
-        }}
-      >
-        <DialogTitle sx={{ color: 'white' }}>
-          Delete Conversation?
-        </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            Are you sure you want to delete this conversation? This action cannot be undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={() => setDeleteDialogOpen(false)}
-            sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={confirmDelete} 
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              '&:hover': {
-                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
-              }
-            }}
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 };
 
-export default ChatNew;
+export default Chat;

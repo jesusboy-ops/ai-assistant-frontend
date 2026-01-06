@@ -3,25 +3,46 @@ import axios from 'axios';
 
 const DICTIONARY_BASE_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 
+// Create axios instance with timeout
+const dictionaryClient = axios.create({
+  timeout: 8000, // 8 second timeout
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+});
+
 export const dictionaryApi = {
   // Search for word definition
   searchWord: async (word) => {
     try {
-      const response = await axios.get(`${DICTIONARY_BASE_URL}/${word.toLowerCase()}`);
+      console.log(`🔍 Searching dictionary for: "${word}"`);
+      const response = await dictionaryClient.get(`${DICTIONARY_BASE_URL}/${word.toLowerCase()}`);
+      console.log('✅ Dictionary search successful');
       return {
         success: true,
         data: response.data[0], // Take first result
       };
     } catch (error) {
+      console.error('❌ Dictionary search error:', error.message);
+      
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        return {
+          success: false,
+          error: 'Dictionary search timed out. Please try again.'
+        };
+      }
+      
       if (error.response?.status === 404) {
         return {
           success: false,
           error: 'Word not found in dictionary'
         };
       }
+      
       return {
         success: false,
-        error: 'Failed to fetch word definition'
+        error: 'Failed to fetch word definition. Please check your internet connection.'
       };
     }
   },

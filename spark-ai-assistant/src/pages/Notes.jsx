@@ -28,12 +28,14 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchNotes, createNote, updateNote, deleteNote, togglePinNote } from '../store/slices/notesSlice';
 import { formatSmartDate } from '../utils/formatDate';
 import toast from '../utils/toast';
+import notificationService from '../services/notificationService';
 import PageHeader from '../components/PageHeader';
+import LoadingSpinner from '../components/LoadingSpinner';
 import NoteShareDialog from '../components/NoteShareDialog';
 
 const Notes = () => {
   const dispatch = useDispatch();
-  const { notes: rawNotes } = useSelector((state) => state.notes);
+  const { notes: rawNotes, loading } = useSelector((state) => state.notes);
   
   // Ensure notes is always an array to prevent filter errors
   const notes = Array.isArray(rawNotes) ? rawNotes : [];
@@ -77,6 +79,12 @@ const Notes = () => {
         updates: { ...formData, updatedAt: new Date().toISOString() }
       }));
       toast.success('Note updated');
+      notificationService.createNotification(
+        'success',
+        'Note Updated',
+        `"${formData.title}" has been updated`,
+        { type: 'note_updated', actionUrl: '/notes' }
+      );
     } else {
       const noteData = {
         ...formData,
@@ -86,6 +94,12 @@ const Notes = () => {
       };
       dispatch(createNote(noteData));
       toast.success('Note created');
+      notificationService.createNotification(
+        'success',
+        'Note Created',
+        `"${formData.title}" note has been created`,
+        { type: 'note_created', actionUrl: '/notes' }
+      );
     }
     handleCloseDialog();
   };
@@ -93,10 +107,22 @@ const Notes = () => {
   const handleDelete = (noteId) => {
     dispatch(deleteNote(noteId));
     toast.success('Note deleted');
+    notificationService.createNotification(
+      'info',
+      'Note Deleted',
+      'Note has been deleted',
+      { type: 'note_deleted', actionUrl: '/notes' }
+    );
   };
 
   const handlePin = (noteId) => {
     dispatch(togglePinNote(noteId));
+    notificationService.createNotification(
+      'info',
+      'Note Pinned',
+      'Note pin status has been updated',
+      { type: 'note_pinned', actionUrl: '/notes' }
+    );
   };
 
   const handleShare = (note) => {
@@ -111,6 +137,44 @@ const Notes = () => {
 
   const pinnedNotes = notes.filter((n) => n.isPinned);
   const regularNotes = notes.filter((n) => !n.isPinned);
+
+  // Show loading spinner while fetching notes
+  if (loading && notes.length === 0) {
+    return (
+      <Box sx={{ maxWidth: 1400, margin: '0 auto' }}>
+        <PageHeader
+          title="Notes"
+          subtitle="Capture your thoughts and ideas"
+          action={
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => handleOpenDialog()}
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                paddingX: 3,
+                paddingY: 1.25,
+                fontWeight: 600,
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
+                }
+              }}
+            >
+              New Note
+            </Button>
+          }
+        />
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <LoadingSpinner 
+            size={48} 
+            type="modern" 
+            color="#667eea" 
+            text="Loading notes..." 
+          />
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 1400, margin: '0 auto' }}>

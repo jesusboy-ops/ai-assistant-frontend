@@ -9,9 +9,54 @@ const openaiClient = axios.create({
   baseURL: OPENAI_API_KEY?.startsWith('sk-or-') ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1',
   headers: {
     'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+    ...(OPENAI_API_KEY?.startsWith('sk-or-') && {
+      'HTTP-Referer': window.location.origin,
+      'X-Title': 'Spark AI Assistant'
+    })
+  },
+  timeout: 15000 // 15 second timeout (reduced from 30s)
 });
+
+// Add request interceptor for debugging
+openaiClient.interceptors.request.use(
+  (config) => {
+    console.log('🔄 AI API Request:', {
+      url: config.baseURL + config.url,
+      method: config.method,
+      headers: {
+        ...config.headers,
+        Authorization: config.headers.Authorization ? '[REDACTED]' : 'Missing'
+      }
+    });
+    return config;
+  },
+  (error) => {
+    console.error('🔄 AI API Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+openaiClient.interceptors.response.use(
+  (response) => {
+    console.log('✅ AI API Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      hasData: !!response.data
+    });
+    return response;
+  },
+  (error) => {
+    console.error('❌ AI API Response Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.message,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
 
 // Local intelligent response generator (when OpenAI is not available)
 const generateLocalResponse = (message) => {
@@ -43,70 +88,100 @@ const generateLocalResponse = (message) => {
     return responses[Math.floor(Math.random() * responses.length)];
   }
   
-  // Coding/Programming
-  if (lowerMessage.includes('code') || lowerMessage.includes('programming') || lowerMessage.includes('javascript') || lowerMessage.includes('python') || lowerMessage.includes('react')) {
-    const responses = [
-      "I can help with that coding question! What specifically are you trying to build or debug?",
-      "Programming stuff - nice! What language are you working with and what's the challenge?",
-      "I love helping with code! Can you tell me more about what you're trying to accomplish?",
-      "Coding question, got it! What's the specific problem you're running into?"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Handle specific questions with actual answers
+  if (lowerMessage.includes('what is') || lowerMessage.includes('what are') || lowerMessage.includes('define') || lowerMessage.includes('meaning of')) {
+    // Extract the topic they're asking about
+    let topic = lowerMessage.replace(/what is|what are|define|meaning of|the|a|an/g, '').trim();
+    if (topic) {
+      return `I'd be happy to explain ${topic} for you! ${topic} is a concept that can have different meanings depending on the context. Could you tell me more specifically what aspect of ${topic} you're interested in? For example, are you looking for a technical definition, practical applications, or something else?`;
+    }
   }
   
-  // Writing
-  if (lowerMessage.includes('write') || lowerMessage.includes('essay') || lowerMessage.includes('article') || lowerMessage.includes('content')) {
-    const responses = [
-      "I'd love to help you write that! What kind of piece are you working on?",
-      "Writing project, awesome! What's the topic and who's your audience?",
-      "I can definitely help with writing. What are you trying to create?",
-      "Writing help coming right up! Tell me more about what you need to write."
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Handle how-to questions
+  if (lowerMessage.includes('how to') || lowerMessage.includes('how do i') || lowerMessage.includes('how can i')) {
+    let task = lowerMessage.replace(/how to|how do i|how can i/g, '').trim();
+    if (task) {
+      return `Great question about ${task}! I can definitely help you with that. To give you the most useful guidance, could you tell me a bit more about your specific situation? For example, what's your current experience level with this, and what's your end goal?`;
+    }
   }
   
-  // Business
-  if (lowerMessage.includes('business') || lowerMessage.includes('marketing') || lowerMessage.includes('strategy') || lowerMessage.includes('plan')) {
-    const responses = [
-      "Business question - I can help with that! What's the situation you're dealing with?",
-      "I can help you think through that business challenge. What's the context?",
-      "Business stuff can be tricky. What specifically are you trying to figure out?",
-      "I'm good with business questions! What's going on that you need help with?"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Handle why questions
+  if (lowerMessage.includes('why') || lowerMessage.includes('reason')) {
+    return `That's a thoughtful question! The reasons behind things can be complex and often depend on context. I'd love to explore this with you - could you give me a bit more detail about what specifically you're curious about? That way I can provide a more targeted explanation.`;
   }
   
-  // Learning
-  if (lowerMessage.includes('learn') || lowerMessage.includes('study') || lowerMessage.includes('understand') || lowerMessage.includes('explain')) {
-    const responses = [
-      "I love helping people learn! What topic are you trying to understand?",
-      "Learning something new? Cool! What would you like me to explain?",
-      "I can definitely help you learn that. What's confusing you right now?",
-      "Teaching is one of my favorite things! What do you want to dive into?"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Handle comparison questions
+  if (lowerMessage.includes('vs') || lowerMessage.includes('versus') || lowerMessage.includes('difference between') || lowerMessage.includes('compare')) {
+    return `Comparisons can be really helpful for understanding! I'd be happy to break down the differences and similarities for you. Could you tell me more about what specific aspects you're most interested in comparing? That way I can focus on what matters most to you.`;
   }
   
-  // Problem solving
-  if (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('stuck') || lowerMessage.includes('challenge')) {
-    const responses = [
-      "I'm here to help you work through this! What's the problem you're facing?",
-      "Let's figure this out together. What's got you stuck?",
-      "I can help you solve that. Can you tell me more about what's going wrong?",
-      "Problem-solving time! What's the challenge you're dealing with?"
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
+  // Coding/Programming with more specific responses
+  if (lowerMessage.includes('code') || lowerMessage.includes('programming') || lowerMessage.includes('javascript') || lowerMessage.includes('python') || lowerMessage.includes('react') || lowerMessage.includes('function') || lowerMessage.includes('bug') || lowerMessage.includes('debug')) {
+    if (lowerMessage.includes('error') || lowerMessage.includes('bug') || lowerMessage.includes('debug') || lowerMessage.includes('not working')) {
+      return `Debugging can be tricky! I'd love to help you figure out what's going wrong. Could you share the specific error message you're seeing, or describe what's happening versus what you expected? Also, what programming language and environment are you working in?`;
+    } else if (lowerMessage.includes('learn') || lowerMessage.includes('start') || lowerMessage.includes('beginner')) {
+      return `Learning to code is exciting! There are lots of great paths depending on what you want to build. Are you interested in web development, mobile apps, data science, or something else? And do you have any programming experience already, or are you starting completely fresh?`;
+    } else {
+      return `I love helping with coding questions! What specific programming challenge are you working on? If you can share some details about the language you're using and what you're trying to accomplish, I can give you much more targeted help.`;
+    }
   }
   
-  // Default responses for anything else
+  // Writing with more specific responses
+  if (lowerMessage.includes('write') || lowerMessage.includes('essay') || lowerMessage.includes('article') || lowerMessage.includes('content') || lowerMessage.includes('blog') || lowerMessage.includes('story') || lowerMessage.includes('letter')) {
+    if (lowerMessage.includes('essay') || lowerMessage.includes('academic')) {
+      return `Academic writing has its own style and structure! What's the topic of your essay, and what type of assignment is it (argumentative, analytical, research-based, etc.)? Also, what's your target length and who's your audience?`;
+    } else if (lowerMessage.includes('blog') || lowerMessage.includes('article')) {
+      return `Content writing is all about connecting with your audience! What's your topic, and who are you writing for? Are you looking to inform, persuade, entertain, or something else? The more I know about your goals, the better I can help you craft something engaging.`;
+    } else {
+      return `I'd love to help you with your writing project! What type of piece are you working on, and what's the main message you want to get across? Also, who's your intended audience? These details will help me give you much more useful guidance.`;
+    }
+  }
+  
+  // Business with more specific responses
+  if (lowerMessage.includes('business') || lowerMessage.includes('marketing') || lowerMessage.includes('strategy') || lowerMessage.includes('plan') || lowerMessage.includes('startup') || lowerMessage.includes('entrepreneur')) {
+    if (lowerMessage.includes('startup') || lowerMessage.includes('start a business')) {
+      return `Starting a business is exciting! What kind of business are you thinking about, and what stage are you at? Are you still in the idea phase, or do you have a concept you're ready to validate? I can help you think through the key steps and considerations.`;
+    } else if (lowerMessage.includes('marketing') || lowerMessage.includes('customers')) {
+      return `Marketing is all about understanding your customers and reaching them effectively! What type of business or product are you marketing, and who's your target audience? Are you looking for help with strategy, specific tactics, or measuring results?`;
+    } else {
+      return `Business challenges can be complex, but they're often solvable with the right approach! What specific situation are you dealing with? The more context you can give me about your business, your goals, and the challenge you're facing, the better I can help you think it through.`;
+    }
+  }
+  
+  // Learning with more specific responses
+  if (lowerMessage.includes('learn') || lowerMessage.includes('study') || lowerMessage.includes('understand') || lowerMessage.includes('explain') || lowerMessage.includes('teach me')) {
+    let subject = lowerMessage.replace(/learn|study|understand|explain|teach me|about|how to/g, '').trim();
+    if (subject) {
+      return `I'd love to help you learn about ${subject}! Learning is most effective when it's tailored to your goals and current knowledge. What's your current experience with ${subject}, and what specifically would you like to understand better? Are you looking for a broad overview or diving deep into particular aspects?`;
+    } else {
+      return `I love helping people learn new things! What topic are you interested in exploring? And what's driving your curiosity - is this for work, a personal project, or just general interest? Knowing your motivation helps me explain things in the most useful way.`;
+    }
+  }
+  
+  // Problem solving with more specific responses
+  if (lowerMessage.includes('problem') || lowerMessage.includes('issue') || lowerMessage.includes('stuck') || lowerMessage.includes('challenge') || lowerMessage.includes('help me')) {
+    return `I'm here to help you work through whatever you're facing! Problem-solving is often about breaking things down into manageable pieces. Could you tell me more about the specific situation? What have you already tried, and where exactly are you getting stuck?`;
+  }
+  
+  // Math and calculations
+  if (lowerMessage.includes('calculate') || lowerMessage.includes('math') || lowerMessage.includes('equation') || lowerMessage.includes('formula') || /\d+[\+\-\*\/]\d+/.test(lowerMessage)) {
+    return `I can help with math problems! If you have a specific calculation or equation, feel free to share it. For more complex problems, it helps if you can explain what you're trying to figure out and what context this is for (homework, work project, personal calculation, etc.).`;
+  }
+  
+  // Technology and tools
+  if (lowerMessage.includes('software') || lowerMessage.includes('app') || lowerMessage.includes('tool') || lowerMessage.includes('technology') || lowerMessage.includes('computer')) {
+    return `Technology questions are great! Are you looking for recommendations for specific tools, help with using software you already have, or trying to understand how something works? The more specific you can be about what you're trying to accomplish, the better I can point you in the right direction.`;
+  }
+  
+  // Default responses that encourage more specific questions
   const defaultResponses = [
-    "That's interesting! Can you tell me more about what you're thinking?",
-    "I'd love to help with that. What specifically would you like to know?",
-    "Sounds like you've got something on your mind. What's the full story?",
-    "I'm curious to hear more about this. What's your question?",
-    "Tell me more! What would you like to explore or figure out?",
-    "I'm here to help! What's the context behind your question?",
-    "Interesting topic! What aspect of this are you most curious about?"
+    "That's an interesting topic! I'd love to dive deeper into this with you. Could you give me a bit more context about what specifically you're curious about or trying to accomplish?",
+    "I'm here to help with that! To give you the most useful response, could you tell me more about your specific situation or what aspect of this you're most interested in?",
+    "Great question! I can definitely help you explore this further. What's the context behind your question, and what would be most helpful for you to know?",
+    "I'd be happy to help you with that! Could you share a bit more detail about what you're working on or what specific information would be most valuable to you?",
+    "Interesting! I want to make sure I give you the most relevant help. Could you tell me more about what prompted this question or what you're hoping to achieve?",
+    "I'm ready to help you figure this out! What's the bigger picture here - what are you working on or trying to understand?",
+    "That's something I can definitely assist with! To give you the best guidance, could you share more about your specific needs or goals?"
   ];
   
   return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
@@ -129,9 +204,10 @@ export const aiApi = {
     }
 
     try {
-      console.log('🤖 Generating AI response with OpenAI...');
+      console.log('🤖 Generating AI response with OpenRouter/OpenAI...');
       console.log('🔑 API Key length:', OPENAI_API_KEY?.length);
-      console.log('🔑 API Key prefix:', OPENAI_API_KEY?.substring(0, 10) + '...');
+      console.log('🔑 API Key prefix:', OPENAI_API_KEY?.substring(0, 15) + '...');
+      console.log('🔑 Using OpenRouter:', OPENAI_API_KEY?.startsWith('sk-or-'));
       
       // Build conversation context for OpenAI
       const messages = [
@@ -146,6 +222,8 @@ Key facts about you:
 - Be conversational and natural - don't use corporate language or bullet points unless specifically asked
 - Respond like you're having a casual conversation with a friend who needs help
 - Be direct, genuine, and personable
+- Provide helpful, detailed answers to questions
+- If you don't know something specific, be honest about it but offer to help in other ways
 
 When someone greets you (hi, hello, hey), introduce yourself as Spark AI and mention you're ready to help them with whatever they need.
 
@@ -169,39 +247,83 @@ When asked about who created you or who made you, always mention that you were c
         content: message
       });
 
-      const response = await openaiClient.post('/chat/completions', {
+      const requestData = {
         model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
         messages: messages,
-        max_tokens: 200,
+        max_tokens: 500, // Increased for more detailed responses
         temperature: 0.8,
         top_p: 0.9,
         frequency_penalty: 0,
         presence_penalty: 0
+      };
+
+      console.log('📤 Sending request to AI API:', {
+        model: requestData.model,
+        messageCount: messages.length,
+        userMessage: message
+      });
+
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Chat response timeout')), 25000); // 25 second timeout
+      });
+
+      // Create the API request promise
+      const apiPromise = openaiClient.post('/chat/completions', requestData);
+
+      // Race between API call and timeout
+      const response = await Promise.race([apiPromise, timeoutPromise]);
+
+      console.log('📥 Raw API response:', {
+        status: response.status,
+        hasChoices: !!response.data?.choices,
+        choicesLength: response.data?.choices?.length,
+        hasContent: !!response.data?.choices?.[0]?.message?.content
       });
 
       if (!response.data?.choices?.[0]?.message?.content) {
-        throw new Error('No valid response from OpenAI');
+        console.error('❌ No valid response content from API');
+        throw new Error('No valid response from AI API');
       }
 
       const aiResponse = response.data.choices[0].message.content.trim();
 
-      console.log('✅ AI response generated:', aiResponse);
-      console.log('📊 Model used:', OPENAI_MODEL);
+      console.log('✅ AI response generated successfully:', aiResponse.substring(0, 100) + '...');
+      console.log('📊 Model used:', requestData.model);
 
       return aiResponse;
 
     } catch (error) {
-      console.error('❌ OpenAI API error:', error);
+      console.error('❌ AI API error:', error);
       console.error('❌ Error details:', {
         message: error.message,
         status: error.response?.status,
         statusText: error.response?.statusText,
-        data: error.response?.data
+        data: error.response?.data,
+        url: error.config?.url,
+        method: error.config?.method
       });
       
-      // Fall back to local intelligent responses instead of error messages
-      console.log('🤖 OpenAI failed, using local intelligent response...');
-      return generateLocalResponse(message);
+      // Handle timeout errors
+      if (error.message === 'Chat response timeout') {
+        console.error('❌ Chat response timed out');
+        throw new Error('AI response timed out. Please try again with a shorter message.');
+      }
+      
+      // If it's a network error or API error, throw it to be handled by the calling function
+      if (error.response?.status === 401) {
+        console.error('❌ Authentication failed - API key may be invalid');
+        throw new Error('AI API authentication failed. Please check your API key.');
+      } else if (error.response?.status === 429) {
+        console.error('❌ Rate limit exceeded');
+        throw new Error('AI API rate limit exceeded. Please try again later.');
+      } else if (error.response?.status >= 500) {
+        console.error('❌ Server error');
+        throw new Error('AI API server error. Please try again later.');
+      }
+      
+      // For other errors, throw them to be handled by the calling function
+      throw error;
     }
   },
 
@@ -276,7 +398,13 @@ Best regards,
       // Calculate appropriate max_tokens based on text length
       const estimatedTokens = Math.max(200, Math.min(1000, text.length * 1.5));
 
-      const response = await openaiClient.post('/chat/completions', {
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Translation timeout')), 12000); // 12 second timeout
+      });
+
+      // Create the API request promise
+      const apiPromise = openaiClient.post('/chat/completions', {
         model: OPENAI_API_KEY?.startsWith('sk-or-') ? 'openai/gpt-3.5-turbo' : OPENAI_MODEL,
         messages: [
           {
@@ -295,6 +423,9 @@ ${text}`
         top_p: 0.9
       });
 
+      // Race between API call and timeout
+      const response = await Promise.race([apiPromise, timeoutPromise]);
+
       if (response.data?.choices?.[0]?.message?.content) {
         const translation = response.data.choices[0].message.content.trim();
         console.log('✅ AI translation completed successfully');
@@ -305,6 +436,11 @@ ${text}`
 
     } catch (error) {
       console.error('❌ AI translation error:', error);
+      
+      if (error.message === 'Translation timeout') {
+        throw new Error('Translation timed out. Please try again with shorter text.');
+      }
+      
       throw error;
     }
   },

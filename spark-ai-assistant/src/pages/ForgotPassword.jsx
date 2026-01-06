@@ -8,9 +8,9 @@ import {
   Button,
   Typography,
   Link,
-  CircularProgress,
   Alert
 } from '@mui/material';
+import FullScreenLoader from '../components/FullScreenLoader';
 import { ArrowBack } from '@mui/icons-material';
 import authApi from '../api/authApi';
 import { validateEmail } from '../utils/validators';
@@ -110,7 +110,7 @@ const ForgotPassword = () => {
                 }
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Send Reset Link'}
+              Send Reset Link
             </Button>
           </form>
         )}
@@ -136,6 +136,9 @@ const ForgotPassword = () => {
           </Link>
         </Box>
       </Card>
+      
+      {/* Full Screen Loader */}
+      {loading && <FullScreenLoader message="Sending reset link..." />}
     </Box>
   );
 };

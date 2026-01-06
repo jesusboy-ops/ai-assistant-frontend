@@ -1,5 +1,5 @@
 // Email Generator page
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -32,6 +32,17 @@ const Emails = () => {
   const [context, setContext] = useState('');
   const [generatedEmail, setGeneratedEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const emailPreviewRef = useRef(null);
+
+  // Auto-scroll to email preview when email is generated
+  useEffect(() => {
+    if (generatedEmail && emailPreviewRef.current) {
+      emailPreviewRef.current.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
+    }
+  }, [generatedEmail]);
 
   const tones = [
     { value: 'professional', label: 'Professional' },
@@ -409,6 +420,7 @@ ${selectedTone.closing},
         {/* Email Preview - Right */}
         <Grid item xs={12} md={6}>
           <Card
+            ref={emailPreviewRef}
             sx={{
               height: '100%',
               background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',

@@ -11,18 +11,15 @@ import {
   Menu,
   MenuItem,
   Skeleton,
-  Chip,
   Fade,
-  alpha
+  useTheme
 } from '@mui/material';
 import {
   Add as AddIcon,
   MoreVert as MoreVertIcon,
   Chat as ChatIcon,
-  Star as StarIcon,
   Delete as DeleteIcon,
-  Edit as EditIcon,
-  Archive as ArchiveIcon
+  Edit as EditIcon
 } from '@mui/icons-material';
 import { formatSmartDate } from '../../utils/formatDate';
 
@@ -37,6 +34,7 @@ const ConversationList = ({
 }) => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedConvId, setSelectedConvId] = useState(null);
+  const theme = useTheme();
 
   const handleMenuOpen = (event, convId) => {
     event.stopPropagation();
@@ -65,15 +63,11 @@ const ConversationList = ({
 
   const getConversationPreview = (conv) => {
     if (conv.lastMessage) {
-      return conv.lastMessage.length > 50 
-        ? conv.lastMessage.substring(0, 50) + '...'
+      return conv.lastMessage.length > 40 
+        ? conv.lastMessage.substring(0, 40) + '...'
         : conv.lastMessage;
     }
     return 'No messages yet';
-  };
-
-  const getMessageCount = (conv) => {
-    return conv.messageCount || 0;
   };
 
   return (
@@ -82,77 +76,57 @@ const ConversationList = ({
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.9) 0%, rgba(26, 26, 46, 0.9) 100%)',
-        border: '1px solid rgba(102, 126, 234, 0.3)',
-        borderRadius: 3,
-        overflow: 'hidden'
+        backgroundColor: theme.palette.background.paper
       }}
     >
       {/* Header */}
       <Box 
         sx={{ 
-          p: 3, 
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          background: 'linear-gradient(90deg, rgba(15, 15, 35, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)'
+          p: 2,
+          borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            mb: 2, 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <ChatIcon />
-          Conversations
-        </Typography>
-        
         <Button
           fullWidth
           variant="contained"
           startIcon={<AddIcon />}
           onClick={onNewChat}
           sx={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            py: 1.25,
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            py: 1.5,
             fontWeight: 600,
             borderRadius: 2,
-            transition: 'all 0.3s ease',
+            textTransform: 'none',
             '&:hover': {
-              background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
-              transform: 'translateY(-2px)'
+              backgroundColor: theme.palette.primary.dark,
+              transform: 'translateY(-1px)'
             }
           }}
         >
-          New Chat
+          New chat
         </Button>
       </Box>
 
       {/* Conversations List */}
       <Box sx={{ flex: 1, overflow: 'hidden' }}>
-        <List sx={{ p: 0, height: '100%', overflowY: 'auto' }}>
+        <List sx={{ p: 1, height: '100%', overflowY: 'auto' }}>
           {loading && conversations.length === 0 ? (
             // Loading skeletons
             Array.from({ length: 5 }).map((_, i) => (
-              <ListItem key={i} sx={{ px: 2, py: 1.5 }}>
+              <ListItem key={i} sx={{ px: 1, py: 0.5 }}>
                 <Box sx={{ width: '100%' }}>
                   <Skeleton 
                     variant="text" 
                     width="80%" 
-                    height={24}
-                    sx={{ mb: 0.5, bgcolor: 'rgba(255, 255, 255, 0.1)' }}
+                    height={20}
+                    sx={{ mb: 0.5, bgcolor: theme.palette.action?.disabled }}
                   />
                   <Skeleton 
                     variant="text" 
                     width="60%" 
                     height={16}
-                    sx={{ bgcolor: 'rgba(255, 255, 255, 0.05)' }}
+                    sx={{ bgcolor: theme.palette.action?.disabled }}
                   />
                 </Box>
               </ListItem>
@@ -162,8 +136,7 @@ const ConversationList = ({
             <Box 
               sx={{ 
                 p: 4, 
-                textAlign: 'center', 
-                color: 'text.secondary',
+                textAlign: 'center',
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
@@ -171,23 +144,24 @@ const ConversationList = ({
                 justifyContent: 'center'
               }}
             >
-              <ChatIcon sx={{ fontSize: 48, mb: 2, opacity: 0.5 }} />
-              <Typography variant="h6" sx={{ mb: 1, opacity: 0.7 }}>
+              <ChatIcon sx={{ fontSize: 48, mb: 2, color: theme.palette.text.disabled }} />
+              <Typography variant="h6" sx={{ mb: 1, color: theme.palette.text.secondary }}>
                 No conversations yet
               </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.5 }}>
+              <Typography variant="body2" sx={{ color: theme.palette.text.disabled }}>
                 Start a new chat to begin
               </Typography>
             </Box>
           ) : (
             // Conversation items
             conversations.map((conv, index) => (
-              <Fade in timeout={300 + index * 100} key={conv.id}>
+              <Fade in timeout={300 + index * 50} key={conv.id}>
                 <ListItem
                   disablePadding
                   sx={{
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                    '&:last-child': { borderBottom: 'none' }
+                    mb: 0.5,
+                    borderRadius: 2,
+                    overflow: 'hidden'
                   }}
                 >
                   <ListItemButton
@@ -195,92 +169,56 @@ const ConversationList = ({
                     onClick={() => onConversationClick(conv.id)}
                     sx={{
                       px: 2,
-                      py: 2,
-                      transition: 'all 0.3s ease',
+                      py: 1.5,
+                      borderRadius: 2,
+                      transition: 'all 0.2s ease',
                       '&.Mui-selected': {
-                        background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)',
-                        borderLeft: '4px solid #06b6d4',
+                        backgroundColor: theme.palette.action?.selected || theme.palette.primary.main + '20',
+                        borderLeft: `3px solid ${theme.palette.primary.main}`,
                         '&:hover': {
-                          background: 'linear-gradient(90deg, rgba(102, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%)'
+                          backgroundColor: theme.palette.action?.hover || theme.palette.primary.main + '30'
+                        },
+                        '& .MuiTypography-root': {
+                          color: theme.palette.text.primary
                         }
                       },
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        transform: 'translateX(4px)'
+                        backgroundColor: theme.palette.action?.hover,
+                        transform: 'translateX(2px)'
                       }
                     }}
                   >
                     <Box sx={{ flex: 1, minWidth: 0, mr: 1 }}>
                       {/* Conversation Title */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
-                        <Typography
-                          variant="subtitle2"
-                          sx={{
-                            fontWeight: activeConversation?.id === conv.id ? 700 : 500,
-                            color: activeConversation?.id === conv.id ? 'white' : 'rgba(255, 255, 255, 0.9)',
-                            flex: 1,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {conv.title || 'New Conversation'}
-                        </Typography>
-                        
-                        {conv.isStarred && (
-                          <StarIcon 
-                            sx={{ 
-                              fontSize: 16, 
-                              color: '#fbbf24',
-                              ml: 1
-                            }} 
-                          />
-                        )}
-                      </Box>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: activeConversation?.id === conv.id ? 600 : 500,
+                          color: activeConversation?.id === conv.id ? theme.palette.text.primary : theme.palette.text.secondary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontSize: '14px',
+                          mb: 0.5
+                        }}
+                      >
+                        {conv.title || 'New Conversation'}
+                      </Typography>
 
                       {/* Last Message Preview */}
                       <Typography
                         variant="caption"
                         sx={{
-                          color: 'rgba(255, 255, 255, 0.6)',
+                          color: activeConversation?.id === conv.id ? theme.palette.text.secondary : theme.palette.text.disabled,
                           display: 'block',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          mb: 0.5
+                          fontSize: '12px'
                         }}
                       >
                         {getConversationPreview(conv)}
                       </Typography>
-
-                      {/* Metadata */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: '0.7rem'
-                          }}
-                        >
-                          {formatSmartDate(conv.updatedAt)}
-                        </Typography>
-                        
-                        {getMessageCount(conv) > 0 && (
-                          <Chip
-                            label={getMessageCount(conv)}
-                            size="small"
-                            sx={{
-                              height: 18,
-                              fontSize: '0.7rem',
-                              background: activeConversation?.id === conv.id 
-                                ? 'rgba(6, 182, 212, 0.3)'
-                                : 'rgba(255, 255, 255, 0.1)',
-                              color: 'rgba(255, 255, 255, 0.8)',
-                              border: 'none'
-                            }}
-                          />
-                        )}
-                      </Box>
                     </Box>
 
                     {/* Menu Button */}
@@ -289,10 +227,10 @@ const ConversationList = ({
                       onClick={(e) => handleMenuOpen(e, conv.id)}
                       sx={{
                         opacity: 0.7,
-                        transition: 'all 0.2s ease',
+                        color: activeConversation?.id === conv.id ? theme.palette.text.primary : theme.palette.text.secondary,
                         '&:hover': {
                           opacity: 1,
-                          background: 'rgba(255, 255, 255, 0.1)'
+                          backgroundColor: theme.palette.action?.hover
                         }
                       }}
                     >
@@ -313,53 +251,34 @@ const ConversationList = ({
         onClose={handleMenuClose}
         PaperProps={{
           sx: {
-            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
-            border: '1px solid rgba(102, 126, 234, 0.3)',
-            borderRadius: 2
-            }
+            backgroundColor: theme.palette.background.paper,
+            border: `1px solid ${theme.palette.divider}`,
+            borderRadius: 2,
+            minWidth: 160
+          }
         }}
       >
         <MenuItem 
           onClick={handleRename}
           sx={{ 
-            color: 'rgba(255, 255, 255, 0.9)',
-            '&:hover': { background: 'rgba(102, 126, 234, 0.2)' }
+            color: theme.palette.text.primary,
+            fontSize: '14px',
+            '&:hover': { backgroundColor: theme.palette.action?.hover }
           }}
         >
-          <EditIcon sx={{ mr: 1, fontSize: 18 }} />
+          <EditIcon sx={{ mr: 1, fontSize: 16 }} />
           Rename
-        </MenuItem>
-        
-        <MenuItem 
-          onClick={handleMenuClose}
-          sx={{ 
-            color: 'rgba(255, 255, 255, 0.9)',
-            '&:hover': { background: 'rgba(102, 126, 234, 0.2)' }
-          }}
-        >
-          <StarIcon sx={{ mr: 1, fontSize: 18 }} />
-          Star
-        </MenuItem>
-        
-        <MenuItem 
-          onClick={handleMenuClose}
-          sx={{ 
-            color: 'rgba(255, 255, 255, 0.9)',
-            '&:hover': { background: 'rgba(102, 126, 234, 0.2)' }
-          }}
-        >
-          <ArchiveIcon sx={{ mr: 1, fontSize: 18 }} />
-          Archive
         </MenuItem>
         
         <MenuItem 
           onClick={handleDelete}
           sx={{ 
-            color: '#f87171',
-            '&:hover': { background: 'rgba(248, 113, 113, 0.2)' }
+            color: theme.palette.error.main,
+            fontSize: '14px',
+            '&:hover': { backgroundColor: theme.palette.error.main + '20' }
           }}
         >
-          <DeleteIcon sx={{ mr: 1, fontSize: 18 }} />
+          <DeleteIcon sx={{ mr: 1, fontSize: 16 }} />
           Delete
         </MenuItem>
       </Menu>

@@ -1,5 +1,5 @@
 // Authentication API service
-import axiosInstance from './axios';
+import axiosInstance, { wakeUpBackend } from './axios';
 
 export const authApi = {
   // Register new user
@@ -8,68 +8,34 @@ export const authApi = {
       email,
       password,
       name
+    }, {
+      timeout: 2000 // ULTRA FAST 2 second timeout
     });
     return response.data;
   },
 
   // Login with email and password
   login: async (email, password) => {
-    // Try multiple request formats to handle different backend configurations
-    const requestConfigs = [
-      // Standard format
-      {
-        url: '/api/auth/login',
-        data: { email, password },
+    console.log('🔐 Attempting login for:', email);
+    
+    try {
+      const response = await axiosInstance.post('/api/auth/login', {
+        email,
+        password
+      }, {
+        timeout: 2000, // ULTRA FAST 2 second timeout
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
-      },
-      // Alternative format with username field
-      {
-        url: '/api/auth/login',
-        data: { username: email, password },
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      },
-      // Format with additional headers
-      {
-        url: '/api/auth/login',
-        data: { email, password },
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-          'Cache-Control': 'no-cache'
-        }
-      }
-    ];
-    
-    let lastError;
-    
-    for (const config of requestConfigs) {
-      try {
-        console.log('🔐 Trying login with config:', config);
-        const response = await axiosInstance.post(config.url, config.data, {
-          headers: config.headers
-        });
-        console.log('✅ Login successful with config:', config);
-        return response.data;
-      } catch (error) {
-        console.log('❌ Login failed with config:', config, error.response?.status);
-        lastError = error;
-        
-        // If we get a different error than 403, stop trying other configs
-        if (error.response?.status !== 403) {
-          break;
-        }
-      }
+      });
+      
+      console.log('✅ Login successful for:', email);
+      return response.data;
+    } catch (error) {
+      console.log('❌ Login failed for:', email, error.response?.data || error.message);
+      throw error;
     }
-    
-    // If all configs failed, throw the last error
-    throw lastError;
   },
 
   // Google OAuth login

@@ -1,7 +1,8 @@
 // Google OAuth Callback Handler
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, CircularProgress, Typography, Alert } from '@mui/material';
+import { Box, Typography, Alert } from '@mui/material';
+import SimpleSpinner from './SimpleSpinner';
 import useAuth from '../hooks/useAuth';
 import toast from '../utils/toast';
 
@@ -107,7 +108,7 @@ const GoogleOAuthCallback = () => {
       >
         {status === 'processing' && (
           <>
-            <CircularProgress sx={{ color: '#06b6d4', mb: 2 }} />
+            <SimpleSpinner size={40} color="#06b6d4" />
             <Typography variant="h6" sx={{ color: 'white', mb: 1 }}>
               Completing Google Sign-In
             </Typography>

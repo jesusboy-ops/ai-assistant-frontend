@@ -16,12 +16,12 @@ import {
   Tabs,
   Tab,
   Alert,
-  CircularProgress,
   Tooltip,
   IconButton,
   Collapse,
   Chip
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Calculate as CalculateIcon,
   History as HistoryIcon,
@@ -121,17 +121,47 @@ const Math = () => {
     { label: ')', value: ')' },
     { label: '^', value: '**' },
     { label: '√', value: 'sqrt(' },
+    { label: 'sin', value: 'sin(' },
+    { label: 'cos', value: 'cos(' },
+    { label: 'tan', value: 'tan(' },
+    { label: 'log', value: 'log(' },
+    { label: 'ln', value: 'ln(' },
+    { label: 'e', value: '2.71828' },
     { label: 'π', value: '3.14159' },
     { label: 'Clear', value: 'clear', action: () => setInputExpression('') }
   ];
 
   const exampleExpressions = [
+    // Basic arithmetic
     '2 + 3 * 4',
     '(15 + 25) / 2',
-    '2**3 + 4**2',
     '100 - 25 * 2',
-    '(8 + 2) * (5 - 3)',
-    '50 / (2 + 3)'
+    
+    // Powers and roots
+    '2**8',
+    '3**4 + 2**5',
+    'sqrt(144)',
+    'sqrt(25) + sqrt(16)',
+    
+    // Exponentials and logarithms
+    '2.71828**3',
+    'log(100)',
+    'ln(2.71828)',
+    
+    // Trigonometry
+    'sin(3.14159/2)',
+    'cos(0)',
+    'tan(3.14159/4)',
+    
+    // Complex expressions
+    '(2**3 + sqrt(16)) * (log(100) - 1)',
+    'sin(3.14159/6) + cos(3.14159/3)',
+    '2.71828**(ln(5)) + sqrt(2**4)',
+    
+    // Advanced problems
+    '(3**4 - 2**5) / (sqrt(49) + 1)',
+    'log(1000) * ln(2.71828**2)',
+    'sin(3.14159/2)**2 + cos(3.14159/2)**2'
   ];
 
   const renderResult = () => {
@@ -187,29 +217,97 @@ const Math = () => {
           {currentSteps && (
             <Collapse in={showSteps}>
               <Box sx={{ mt: 3 }}>
-                <Typography variant="h6" sx={{ color: '#667eea', mb: 2 }}>
-                  Step-by-Step Solution:
+                <Typography variant="h6" sx={{ color: '#667eea', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <SmartToyIcon />
+                  Detailed Step-by-Step Solution:
                 </Typography>
                 {Array.isArray(currentSteps) ? (
-                  <List>
+                  <Box sx={{ 
+                    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+                    borderRadius: 2,
+                    p: 3,
+                    border: '1px solid rgba(102, 126, 234, 0.3)'
+                  }}>
                     {currentSteps.map((step, index) => (
-                      <ListItem key={index} sx={{ py: 0.5 }}>
-                        <ListItemText
-                          primary={`Step ${index + 1}: ${step}`}
-                          sx={{
-                            '& .MuiListItemText-primary': {
-                              color: 'rgba(255, 255, 255, 0.9)',
-                              fontFamily: 'monospace'
-                            }
-                          }}
-                        />
-                      </ListItem>
+                      <Box key={index} sx={{ mb: 2, pb: 2, borderBottom: index < currentSteps.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                          <Chip 
+                            label={`Step ${index + 1}`} 
+                            size="small" 
+                            sx={{ 
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              fontWeight: 600
+                            }} 
+                          />
+                          {index === currentSteps.length - 1 && (
+                            <Chip 
+                              label="Final Answer" 
+                              size="small" 
+                              sx={{ 
+                                background: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
+                                color: 'white',
+                                fontWeight: 600
+                              }} 
+                            />
+                          )}
+                        </Box>
+                        <Typography sx={{ 
+                          color: 'rgba(255, 255, 255, 0.95)', 
+                          fontFamily: 'monospace',
+                          fontSize: '1.1rem',
+                          lineHeight: 1.6,
+                          background: 'rgba(0, 0, 0, 0.3)',
+                          p: 2,
+                          borderRadius: 1,
+                          border: '1px solid rgba(255, 255, 255, 0.1)'
+                        }}>
+                          {step}
+                        </Typography>
+                        {index < currentSteps.length - 1 && (
+                          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                            <ExpandMoreIcon sx={{ color: '#667eea' }} />
+                          </Box>
+                        )}
+                      </Box>
                     ))}
-                  </List>
+                    
+                    <Box sx={{ 
+                      mt: 3, 
+                      p: 2, 
+                      background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(8, 145, 178, 0.2) 100%)',
+                      borderRadius: 2,
+                      border: '1px solid rgba(6, 182, 212, 0.4)'
+                    }}>
+                      <Typography variant="h6" sx={{ color: '#06b6d4', mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalculateIcon />
+                        Final Result:
+                      </Typography>
+                      <Typography variant="h4" sx={{ 
+                        color: '#06b6d4', 
+                        fontWeight: 700, 
+                        fontFamily: 'monospace',
+                        textAlign: 'center'
+                      }}>
+                        {mathApi.formatResult(currentResult)}
+                      </Typography>
+                    </Box>
+                  </Box>
                 ) : (
-                  <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)', fontStyle: 'italic' }}>
-                    {currentSteps || 'Step-by-step solution not available for this expression.'}
-                  </Typography>
+                  <Box sx={{ 
+                    p: 3,
+                    background: 'rgba(255, 193, 7, 0.1)',
+                    borderRadius: 2,
+                    border: '1px solid rgba(255, 193, 7, 0.3)'
+                  }}>
+                    <Typography sx={{ 
+                      color: 'rgba(255, 255, 255, 0.8)', 
+                      fontStyle: 'italic',
+                      textAlign: 'center'
+                    }}>
+                      {currentSteps || 'This expression was solved directly. For more complex problems, try expressions with multiple operations, functions, or parentheses to see detailed steps.'}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             </Collapse>
@@ -292,7 +390,7 @@ const Math = () => {
             <TextField
               id="math-input"
               fullWidth
-              placeholder="Enter mathematical expression (e.g., 2 + 3 * 4)"
+              placeholder="Enter mathematical expression (e.g., 2**8, sqrt(144), sin(π/2), log(100), ln(e**3))"
               value={inputExpression}
               onChange={(e) => setInputExpression(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -313,7 +411,7 @@ const Math = () => {
               variant="contained"
               onClick={() => handleSolve()}
               disabled={loading || !inputExpression.trim()}
-              startIcon={loading ? <CircularProgress size={20} /> : <CalculateIcon />}
+              startIcon={loading ? <LoadingSpinner size={20} type="modern" /> : <CalculateIcon />}
               sx={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 minWidth: 120
@@ -367,7 +465,7 @@ const Math = () => {
           {/* Example Expressions */}
           <Box>
             <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1 }}>
-              Try these examples:
+              💡 Try these examples (from basic to advanced):
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {exampleExpressions.map((expr, index) => (
@@ -375,17 +473,35 @@ const Math = () => {
                   key={index}
                   label={expr}
                   onClick={() => setInputExpression(expr)}
+                  size="small"
                   sx={{
-                    backgroundColor: 'rgba(6, 182, 212, 0.2)',
-                    color: '#06b6d4',
+                    backgroundColor: index < 3 ? 'rgba(76, 175, 80, 0.2)' : 
+                                     index < 7 ? 'rgba(255, 193, 7, 0.2)' :
+                                     index < 13 ? 'rgba(255, 152, 0, 0.2)' :
+                                     'rgba(244, 67, 54, 0.2)',
+                    color: index < 3 ? '#4caf50' : 
+                           index < 7 ? '#ffc107' :
+                           index < 13 ? '#ff9800' :
+                           '#f44336',
                     cursor: 'pointer',
                     fontFamily: 'monospace',
+                    fontSize: '0.75rem',
                     '&:hover': {
-                      backgroundColor: 'rgba(6, 182, 212, 0.3)'
+                      backgroundColor: index < 3 ? 'rgba(76, 175, 80, 0.3)' : 
+                                       index < 7 ? 'rgba(255, 193, 7, 0.3)' :
+                                       index < 13 ? 'rgba(255, 152, 0, 0.3)' :
+                                       'rgba(244, 67, 54, 0.3)',
+                      transform: 'scale(1.05)'
                     }
                   }}
                 />
               ))}
+            </Box>
+            <Box sx={{ mt: 1, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Typography variant="caption" sx={{ color: '#4caf50' }}>🟢 Basic</Typography>
+              <Typography variant="caption" sx={{ color: '#ffc107' }}>🟡 Powers & Roots</Typography>
+              <Typography variant="caption" sx={{ color: '#ff9800' }}>🟠 Functions</Typography>
+              <Typography variant="caption" sx={{ color: '#f44336' }}>🔴 Advanced</Typography>
             </Box>
           </Box>
 

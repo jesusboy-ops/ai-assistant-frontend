@@ -1,4 +1,4 @@
-// Dashboard Layout - Dark mode with sidebar and header
+// Dashboard Layout - Responsive layout with theme support
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
@@ -54,8 +54,7 @@ const DashboardLayout = () => {
     <Box sx={{ 
       display: 'flex', 
       minHeight: '100vh', 
-      backgroundColor: '#0f0f23',
-      background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+      backgroundColor: theme.palette.background.default
     }}>
       {/* Sidebar */}
       <Sidebar 
@@ -93,6 +92,7 @@ const DashboardLayout = () => {
             overflowX: 'hidden',
             padding: { xs: 1.5, sm: 2, md: 3 },
             paddingLeft: { xs: 1.5, sm: 2, md: 2 }, // Closer to sidebar
+            backgroundColor: theme.palette.background.default
           }}
         >
           {console.log('🏠 DashboardLayout rendering Outlet...')}

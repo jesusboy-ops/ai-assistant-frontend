@@ -1,7 +1,6 @@
 // Translator slice for Language Translator
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { translatorApi } from '../../api/translatorApi';
-import notificationService from '../../services/notificationService';
 
 // Async thunks
 export const fetchLanguages = createAsyncThunk(
@@ -22,15 +21,26 @@ export const fetchLanguages = createAsyncThunk(
 export const translateText = createAsyncThunk(
   'translator/translateText',
   async ({ text, sourceLang, targetLang }, { rejectWithValue }) => {
-    const result = await translatorApi.translateText(text, sourceLang, targetLang);
-    if (!result.success) {
-      // Ensure error is always a string
-      const errorMessage = typeof result.error === 'string' 
-        ? result.error 
-        : result.error?.message || 'Translation failed';
+    try {
+      console.log(`🔄 Starting translation: ${sourceLang} → ${targetLang}`);
+      const result = await translatorApi.translateText(text, sourceLang, targetLang);
+      if (!result.success) {
+        // Ensure error is always a string
+        const errorMessage = typeof result.error === 'string' 
+          ? result.error 
+          : result.error?.message || 'Translation failed';
+        console.error('❌ Translation failed:', errorMessage);
+        return rejectWithValue(errorMessage);
+      }
+      console.log('✅ Translation successful');
+      return result.data;
+    } catch (error) {
+      console.error('❌ Translation error:', error);
+      const errorMessage = error.code === 'ECONNABORTED' || error.message.includes('timeout')
+        ? 'Translation timed out. Please try again.'
+        : error.message || 'Translation failed';
       return rejectWithValue(errorMessage);
     }
-    return result.data;
   }
 );
 
@@ -150,11 +160,7 @@ const translatorSlice = createSlice({
         
         localStorage.setItem('translation_history', JSON.stringify(state.translationHistory));
         
-        // Create system notification
-        notificationService.translationCompleted(
-          action.payload.originalText,
-          action.payload.targetLang
-        );
+        // Note: Notification will be handled by the component after successful translation
       })
       .addCase(translateText.rejected, (state, action) => {
         state.loading = false;

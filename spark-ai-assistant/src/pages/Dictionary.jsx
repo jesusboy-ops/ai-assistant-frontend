@@ -19,9 +19,9 @@ import {
   Tab,
   Divider,
   Alert,
-  CircularProgress,
   Tooltip
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Search as SearchIcon,
   VolumeUp as VolumeUpIcon,
@@ -404,7 +404,7 @@ const Dictionary = () => {
               variant="contained"
               onClick={() => handleSearch()}
               disabled={loading || !searchTerm.trim()}
-              startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+              startIcon={loading ? <LoadingSpinner size={16} type="modern" color="white" /> : <SearchIcon />}
               sx={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 minWidth: 120

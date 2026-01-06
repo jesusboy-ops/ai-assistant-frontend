@@ -1,161 +1,178 @@
-// Custom hook for Tasks functionality
+// Custom hook for tasks functionality
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  fetchTasks,
-  createTask,
-  updateTask,
+import { 
+  fetchTasks, 
+  createTask, 
+  updateTask, 
   deleteTask,
-  toggleTaskComplete,
-  createTaskFromMessage,
-  getTaskSuggestions
+  setFilter,
+  setSortBy,
+  clearError,
+  addTaskLocal,
+  updateTaskLocal,
+  deleteTaskLocal
 } from '../store/slices/tasksSlice';
-import { showToast } from '../utils/toast';
+import toast from '../utils/toast';
 
 export const useTasks = () => {
   const dispatch = useDispatch();
-  const tasksState = useSelector((state) => state.tasks);
+  const { tasks, loading, error, filter, sortBy } = useSelector((state) => state.tasks);
 
+  // Load all tasks
   const loadTasks = async () => {
     try {
       await dispatch(fetchTasks()).unwrap();
-      return { success: true };
     } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
+      console.error('Failed to load tasks:', error);
+      toast.error('Failed to load tasks');
     }
   };
 
+  // Create new task
   const addTask = async (taskData) => {
     try {
-      await dispatch(createTask(taskData)).unwrap();
-      showToast.success('Task created successfully');
-      return { success: true };
+      const result = await dispatch(createTask(taskData)).unwrap();
+      toast.success('Task created successfully');
+      return result;
     } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
+      console.error('Failed to create task:', error);
+      
+      // Fallback to local storage
+      dispatch(addTaskLocal(taskData));
+      toast.success('Task created locally (will sync when online)');
+      return { ...taskData, id: Date.now(), isLocal: true };
     }
   };
 
-  const editTask = async (taskId, updates) => {
+  // Update existing task
+  const modifyTask = async (taskId, updates) => {
     try {
-      await dispatch(updateTask({ taskId, updates })).unwrap();
-      showToast.success('Task updated successfully');
-      return { success: true };
+      const result = await dispatch(updateTask({ id: taskId, updates })).unwrap();
+      toast.success('Task updated successfully');
+      return result;
     } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
+      console.error('Failed to update task:', error);
+      
+      // Fallback to local storage
+      dispatch(updateTaskLocal({ id: taskId, updates }));
+      toast.success('Task updated locally (will sync when online)');
+      return { id: taskId, ...updates };
     }
   };
 
+  // Delete task
   const removeTask = async (taskId) => {
     try {
       await dispatch(deleteTask(taskId)).unwrap();
-      showToast.success('Task deleted successfully');
-      return { success: true };
+      toast.success('Task deleted successfully');
     } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
+      console.error('Failed to delete task:', error);
+      
+      // Fallback to local storage
+      dispatch(deleteTaskLocal(taskId));
+      toast.success('Task deleted locally (will sync when online)');
     }
   };
 
-  const toggleComplete = async (task) => {
-    try {
-      await dispatch(toggleTaskComplete({
-        taskId: task.id,
-        completed: !task.completed
-      })).unwrap();
-      showToast.success(task.completed ? 'Task marked as pending' : 'Task completed');
-      return { success: true };
-    } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
-    }
+  // Complete/uncomplete task
+  const toggleTaskCompletion = async (task) => {
+    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    return await modifyTask(task.id, { ...task, status: newStatus });
   };
 
-  const createFromMessage = async (message) => {
-    try {
-      await dispatch(createTaskFromMessage(message)).unwrap();
-      showToast.success('Task created from message');
-      return { success: true };
-    } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
-    }
+  // Filter tasks
+  const setTaskFilter = (filterValue) => {
+    dispatch(setFilter(filterValue));
   };
 
-  const getSuggestions = async (taskTitle) => {
-    try {
-      await dispatch(getTaskSuggestions(taskTitle)).unwrap();
-      return { success: true };
-    } catch (error) {
-      showToast.error(error);
-      return { success: false, error };
-    }
+  // Sort tasks
+  const setTaskSort = (sortValue) => {
+    dispatch(setSortBy(sortValue));
   };
 
+  // Clear errors
+  const clearTaskError = () => {
+    dispatch(clearError());
+  };
+
+  // Get filtered and sorted tasks
   const getFilteredTasks = () => {
-    let filtered = [...tasksState.tasks];
-
-    // Apply filter
-    switch (tasksState.filter) {
-      case 'pending':
-        filtered = filtered.filter(task => !task.completed);
-        break;
-      case 'completed':
-        filtered = filtered.filter(task => task.completed);
-        break;
-      case 'overdue':
-        filtered = filtered.filter(task => 
-          !task.completed && task.dueDate && new Date(task.dueDate) < new Date()
-        );
-        break;
-      default:
-        break;
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      switch (tasksState.sortBy) {
-        case 'dueDate':
-          if (!a.dueDate && !b.dueDate) return 0;
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return new Date(a.dueDate) - new Date(b.dueDate);
-        case 'priority':
-          const priorityOrder = { high: 3, medium: 2, low: 1 };
-          return priorityOrder[b.priority] - priorityOrder[a.priority];
-        case 'createdAt':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        default:
-          return 0;
+    let filtered = tasks.filter(task => {
+      if (filter === 'all') return true;
+      if (filter === 'pending') return task.status === 'pending';
+      if (filter === 'completed') return task.status === 'completed';
+      if (filter === 'overdue') {
+        return task.status === 'pending' && task.dueDate && new Date(task.dueDate) < new Date();
       }
+      return true;
     });
 
-    return filtered;
+    return filtered.sort((a, b) => {
+      if (sortBy === 'dueDate') {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate) - new Date(b.dueDate);
+      }
+      if (sortBy === 'priority') {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+      }
+      if (sortBy === 'created') {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      return 0;
+    });
   };
 
+  // Get task statistics
   const getTaskStats = () => {
-    const total = tasksState.tasks.length;
-    const pending = tasksState.tasks.filter(t => !t.completed).length;
-    const completed = tasksState.tasks.filter(t => t.completed).length;
-    const overdue = tasksState.tasks.filter(t => 
-      !t.completed && t.dueDate && new Date(t.dueDate) < new Date()
+    const total = tasks.length;
+    const pending = tasks.filter(t => t.status === 'pending').length;
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    const overdue = tasks.filter(t => 
+      t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()
     ).length;
 
     return { total, pending, completed, overdue };
   };
 
+  // Get tasks due today
+  const getTasksDueToday = () => {
+    const today = new Date().toDateString();
+    return tasks.filter(task => {
+      if (!task.dueDate) return false;
+      return new Date(task.dueDate).toDateString() === today;
+    });
+  };
+
+  // Get high priority tasks
+  const getHighPriorityTasks = () => {
+    return tasks.filter(task => task.priority === 'high' && task.status === 'pending');
+  };
+
   return {
-    ...tasksState,
+    // State
+    tasks,
+    loading,
+    error,
+    filter,
+    sortBy,
+    
+    // Actions
     loadTasks,
     addTask,
-    editTask,
+    modifyTask,
     removeTask,
-    toggleComplete,
-    createFromMessage,
-    getSuggestions,
-    getFilteredTasks,
-    getTaskStats
+    toggleTaskCompletion,
+    setTaskFilter,
+    setTaskSort,
+    clearTaskError,
+    
+    // Computed values
+    filteredTasks: getFilteredTasks(),
+    taskStats: getTaskStats(),
+    tasksDueToday: getTasksDueToday(),
+    highPriorityTasks: getHighPriorityTasks()
   };
 };
 

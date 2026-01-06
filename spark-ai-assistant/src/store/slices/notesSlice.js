@@ -1,7 +1,6 @@
 // Notes slice - manages notes state
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { notesApi } from '../../api/notesApi';
-import notificationService from '../../services/notificationService';
 
 // Async thunks
 export const fetchNotes = createAsyncThunk(
@@ -119,8 +118,7 @@ const notesSlice = createSlice({
       .addCase(createNote.fulfilled, (state, action) => {
         state.loading = false;
         state.notes.unshift(action.payload);
-        // Create system notification
-        notificationService.noteCreated(action.payload);
+        // Note: Notification will be handled by the component after successful creation
       })
       .addCase(createNote.rejected, (state, action) => {
         state.loading = false;

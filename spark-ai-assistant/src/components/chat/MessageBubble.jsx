@@ -6,7 +6,8 @@ import {
   Tooltip,
   Fade,
   keyframes,
-  Avatar
+  Avatar,
+  useTheme
 } from '@mui/material';
 import {
   ContentCopy as CopyIcon,
@@ -15,6 +16,7 @@ import {
   ThumbDown as ThumbDownIcon
 } from '@mui/icons-material';
 import { formatSmartDate } from '../../utils/formatDate';
+import StudyActions from '../study/StudyActions';
 import toast from '../../utils/toast';
 
 const slideIn = keyframes`
@@ -31,6 +33,7 @@ const slideIn = keyframes`
 const MessageBubble = ({ message, isUser, timestamp, isNew = false }) => {
   const [showActions, setShowActions] = useState(false);
   const [liked, setLiked] = useState(null);
+  const theme = useTheme();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message);
@@ -54,177 +57,149 @@ const MessageBubble = ({ message, isUser, timestamp, isNew = false }) => {
   };
 
   return (
-    <Fade in timeout={300}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: isUser ? 'flex-end' : 'flex-start',
+        mb: 4,
+        animation: isNew ? `${slideIn} 0.4s ease-out` : 'none'
+      }}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
       <Box
         sx={{
+          maxWidth: { xs: '75%', sm: '70%', md: '65%' },
           display: 'flex',
-          justifyContent: isUser ? 'flex-end' : 'flex-start',
-          mb: 3,
-          animation: isNew ? `${slideIn} 0.4s ease-out` : 'none'
+          gap: 2,
+          flexDirection: isUser ? 'row-reverse' : 'row',
+          alignItems: 'flex-start'
         }}
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
       >
-        <Box
+        {/* Avatar */}
+        <Avatar
           sx={{
-            maxWidth: { xs: '85%', sm: '80%', md: '70%' },
-            display: 'flex',
-            gap: 1.5,
-            flexDirection: isUser ? 'row-reverse' : 'row',
-            alignItems: 'flex-start'
+            backgroundColor: isUser 
+              ? theme.palette.primary.main
+              : theme.palette.secondary.main,
+            width: 32,
+            height: 32,
+            fontSize: '14px',
+            fontWeight: 600,
+            flexShrink: 0,
+            border: `2px solid ${theme.palette.divider}`
           }}
         >
-          {/* Avatar */}
-          <Avatar
+          {isUser ? 'U' : 'AI'}
+        </Avatar>
+
+        {/* Message Content */}
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box
             sx={{
+              position: 'relative',
+              padding: { xs: '8px 12px', sm: '12px 16px' },
+              borderRadius: { xs: '12px', sm: '16px' },
               background: isUser 
-                ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                : 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-              width: 40,
-              height: 40,
-              boxShadow: isUser
-                ? '0 4px 15px rgba(102, 126, 234, 0.4)'
-                : '0 4px 15px rgba(6, 182, 212, 0.4)',
-              border: '2px solid rgba(255, 255, 255, 0.1)',
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              flexShrink: 0,
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                transform: 'scale(1.05)',
-                boxShadow: isUser
-                  ? '0 6px 20px rgba(102, 126, 234, 0.6)'
-                  : '0 6px 20px rgba(6, 182, 212, 0.6)'
-              }
+                ? theme.palette.primary.main
+                : theme.palette.background.paper,
+              border: isUser 
+                ? 'none'
+                : `1px solid ${theme.palette.divider}`,
+              color: isUser ? theme.palette.primary.contrastText : theme.palette.text.primary,
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              fontSize: { xs: '14px', sm: '16px' },
+              lineHeight: 1.5
             }}
           >
-            {isUser ? 'U' : 'AI'}
-          </Avatar>
-
-          {/* Message Content */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box
-              sx={{
-                position: 'relative',
-                padding: 2.5,
-                borderRadius: 3,
-                background: isUser
-                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-                  : 'linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%)',
-                border: isUser 
-                  ? 'none'
-                  : '1px solid rgba(6, 182, 212, 0.3)',
-                boxShadow: isUser
-                  ? '0 8px 25px rgba(102, 126, 234, 0.3)'
-                  : '0 8px 25px rgba(6, 182, 212, 0.15)',
-                wordBreak: 'break-word',
-                overflowWrap: 'break-word',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: isUser
-                    ? '0 12px 35px rgba(102, 126, 234, 0.4)'
-                    : '0 12px 35px rgba(6, 182, 212, 0.25)'
-                },
-                // Message tail
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 15,
-                  [isUser ? 'right' : 'left']: -8,
-                  width: 0,
-                  height: 0,
-                  borderTop: '8px solid transparent',
-                  borderBottom: '8px solid transparent',
-                  [isUser ? 'borderLeft' : 'borderRight']: isUser 
-                    ? '8px solid #667eea'
-                    : '8px solid rgba(6, 182, 212, 0.3)'
-                }
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: 'inherit',
+                lineHeight: 'inherit',
+                fontSize: 'inherit',
+                whiteSpace: 'pre-wrap',
+                fontWeight: 400,
+                margin: 0
               }}
             >
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  color: isUser ? 'white' : 'rgba(255, 255, 255, 0.95)',
-                  lineHeight: 1.6,
-                  fontSize: '1rem',
-                  whiteSpace: 'pre-wrap',
-                  fontWeight: 400
-                }}
-              >
-                {message}
-              </Typography>
-
-              {/* Action Buttons */}
-              {!isUser && (
-                <Fade in={showActions} timeout={200}>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: -15,
-                      right: 10,
-                      display: 'flex',
-                      gap: 0.5,
-                      background: 'rgba(15, 15, 35, 0.9)',
-                      borderRadius: 2,
-                      padding: 0.5,
-                      border: '1px solid rgba(6, 182, 212, 0.3)'
-                      }}
-                  >
-                    <Tooltip title="Copy message">
-                      <IconButton size="small" onClick={handleCopy}>
-                        <CopyIcon sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.7)' }} />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    <Tooltip title="Read aloud">
-                      <IconButton size="small" onClick={handleSpeak}>
-                        <SpeakIcon sx={{ fontSize: 16, color: 'rgba(255, 255, 255, 0.7)' }} />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    <Tooltip title="Helpful">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => handleLike(true)}
-                        sx={{ color: liked === true ? '#4ade80' : 'rgba(255, 255, 255, 0.7)' }}
-                      >
-                        <ThumbUpIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    <Tooltip title="Not helpful">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => handleLike(false)}
-                        sx={{ color: liked === false ? '#f87171' : 'rgba(255, 255, 255, 0.7)' }}
-                      >
-                        <ThumbDownIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Fade>
-              )}
-            </Box>
-
-            {/* Timestamp */}
-            <Typography
-              variant="caption"
-              sx={{
-                display: 'block',
-                mt: 1,
-                color: 'rgba(255, 255, 255, 0.5)',
-                textAlign: isUser ? 'right' : 'left',
-                fontSize: '0.75rem',
-                fontWeight: 400
-              }}
-            >
-              {formatSmartDate(timestamp)}
+              {message}
             </Typography>
+
+            {/* Action Buttons for AI messages */}
+            {!isUser && showActions && (
+              <Fade in timeout={200}>
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -12,
+                    right: 8,
+                    display: 'flex',
+                    gap: 0.5,
+                    backgroundColor: theme.palette.background.paper,
+                    borderRadius: 2,
+                    padding: '4px',
+                    border: `1px solid ${theme.palette.divider}`
+                  }}
+                >
+                  <Tooltip title="Copy message">
+                    <IconButton size="small" onClick={handleCopy}>
+                      <CopyIcon sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <Tooltip title="Read aloud">
+                    <IconButton size="small" onClick={handleSpeak}>
+                      <SpeakIcon sx={{ fontSize: 14, color: theme.palette.text.secondary }} />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <Tooltip title="Good response">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleLike(true)}
+                      sx={{ color: liked === true ? theme.palette.success.main : theme.palette.text.secondary }}
+                    >
+                      <ThumbUpIcon sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Tooltip>
+                  
+                  <Tooltip title="Bad response">
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleLike(false)}
+                      sx={{ color: liked === false ? theme.palette.error.main : theme.palette.text.secondary }}
+                    >
+                      <ThumbDownIcon sx={{ fontSize: 14 }} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Fade>
+            )}
           </Box>
+
+          {/* Timestamp */}
+          <Typography
+            variant="caption"
+            sx={{
+              display: 'block',
+              mt: 1,
+              color: theme.palette.text.disabled,
+              textAlign: isUser ? 'right' : 'left',
+              fontSize: '12px'
+            }}
+          >
+            {formatSmartDate(timestamp)}
+          </Typography>
+
+          {/* Study Actions for AI messages - Always visible in study mode */}
+          {!isUser && (
+            <StudyActions messageContent={message} isVisible={true} />
+          )}
         </Box>
       </Box>
-    </Fade>
+    </Box>
   );
 };
 

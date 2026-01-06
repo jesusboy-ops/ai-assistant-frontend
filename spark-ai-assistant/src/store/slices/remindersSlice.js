@@ -1,107 +1,119 @@
-// Reminders slice for Smart Reminders System
+// Reminders Redux slice
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { remindersApi } from '../../api/remindersApi';
-import notificationService from '../../services/notificationService';
+import remindersApi from '../../api/remindersApi';
 
 // Async thunks
 export const fetchReminders = createAsyncThunk(
   'reminders/fetchReminders',
   async (_, { rejectWithValue }) => {
-    const result = await remindersApi.getReminders();
-    if (!result.success) {
-      return rejectWithValue(result.error);
+    try {
+      const response = await remindersApi.getReminders();
+      if (response.success) {
+        const reminders = response.data || [];
+        return Array.isArray(reminders) ? reminders : [];
+      } else {
+        return rejectWithValue(response.error || 'Failed to fetch reminders');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch reminders');
     }
-    return result.data;
   }
 );
 
 export const createReminder = createAsyncThunk(
   'reminders/createReminder',
   async (reminderData, { rejectWithValue }) => {
-    const result = await remindersApi.createReminder(reminderData);
-    if (!result.success) {
-      return rejectWithValue(result.error);
+    try {
+      const response = await remindersApi.createReminder(reminderData);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to create reminder');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to create reminder');
     }
-    return result.data;
   }
 );
 
 export const updateReminder = createAsyncThunk(
   'reminders/updateReminder',
-  async ({ reminderId, updates }, { rejectWithValue }) => {
-    const result = await remindersApi.updateReminder(reminderId, updates);
-    if (!result.success) {
-      return rejectWithValue(result.error);
+  async ({ id, updates }, { rejectWithValue }) => {
+    try {
+      const response = await remindersApi.updateReminder(id, updates);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.error || 'Failed to update reminder');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update reminder');
     }
-    return result.data;
   }
 );
 
 export const deleteReminder = createAsyncThunk(
   'reminders/deleteReminder',
   async (reminderId, { rejectWithValue }) => {
-    const result = await remindersApi.deleteReminder(reminderId);
-    if (!result.success) {
-      return rejectWithValue(result.error);
+    try {
+      const response = await remindersApi.deleteReminder(reminderId);
+      if (response.success) {
+        return reminderId;
+      } else {
+        return rejectWithValue(response.error || 'Failed to delete reminder');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to delete reminder');
     }
-    return reminderId;
-  }
-);
-
-export const completeReminder = createAsyncThunk(
-  'reminders/completeReminder',
-  async (reminderId, { rejectWithValue }) => {
-    const result = await remindersApi.completeReminder(reminderId);
-    if (!result.success) {
-      return rejectWithValue(result.error);
-    }
-    return result.data;
-  }
-);
-
-export const createReminderFromMessage = createAsyncThunk(
-  'reminders/createReminderFromMessage',
-  async (message, { rejectWithValue }) => {
-    const result = await remindersApi.createReminderFromMessage(message);
-    if (!result.success) {
-      return rejectWithValue(result.error);
-    }
-    return result.data;
-  }
-);
-
-export const fetchUpcomingReminders = createAsyncThunk(
-  'reminders/fetchUpcomingReminders',
-  async (days = 7, { rejectWithValue }) => {
-    const result = await remindersApi.getUpcomingReminders(days);
-    if (!result.success) {
-      return rejectWithValue(result.error);
-    }
-    return result.data;
   }
 );
 
 const initialState = {
   reminders: [],
-  upcomingReminders: [],
   loading: false,
   error: null,
-  filter: 'all', // all, pending, completed
-  sortBy: 'dueDate', // dueDate, createdAt
+  filter: 'upcoming', // upcoming, past, all
+  sortBy: 'reminderTime' // reminderTime, created, priority
 };
 
 const remindersSlice = createSlice({
   name: 'reminders',
   initialState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
     setFilter: (state, action) => {
       state.filter = action.payload;
     },
     setSortBy: (state, action) => {
       state.sortBy = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+    // Local reminder management
+    addReminderLocal: (state, action) => {
+      state.reminders.push({
+        ...action.payload,
+        id: Date.now(),
+        createdAt: new Date().toISOString(),
+        isLocal: true
+      });
+    },
+    updateReminderLocal: (state, action) => {
+      const { id, updates } = action.payload;
+      const reminderIndex = state.reminders.findIndex(reminder => reminder.id === id);
+      if (reminderIndex !== -1) {
+        state.reminders[reminderIndex] = { ...state.reminders[reminderIndex], ...updates };
+      }
+    },
+    deleteReminderLocal: (state, action) => {
+      state.reminders = state.reminders.filter(reminder => reminder.id !== action.payload);
+    },
+    markAsTriggered: (state, action) => {
+      const reminder = state.reminders.find(r => r.id === action.payload);
+      if (reminder) {
+        reminder.triggered = true;
+        reminder.triggeredAt = new Date().toISOString();
+      }
     }
   },
   extraReducers: (builder) => {
@@ -113,99 +125,90 @@ const remindersSlice = createSlice({
       })
       .addCase(fetchReminders.fulfilled, (state, action) => {
         state.loading = false;
-        // Handle different backend response formats
-        const data = action.payload;
-        if (Array.isArray(data)) {
-          state.reminders = data;
-        } else if (data && Array.isArray(data.reminders)) {
-          state.reminders = data.reminders;
-        } else if (data && Array.isArray(data.data)) {
-          state.reminders = data.data;
-        } else {
-          console.warn('Unexpected reminders data format:', data);
-          state.reminders = [];
-        }
+        // Sanitize reminder data to handle null values
+        const sanitizedReminders = Array.isArray(action.payload) ? action.payload.map(reminder => ({
+          ...reminder,
+          title: reminder.title && reminder.title !== 'null' ? reminder.title : '',
+          description: reminder.description && reminder.description !== 'null' ? reminder.description : '',
+          priority: reminder.priority && reminder.priority !== 'null' ? reminder.priority : 'medium'
+        })) : [];
+        state.reminders = sanitizedReminders;
       })
       .addCase(fetchReminders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      })
-      
-      // Create reminder
-      .addCase(createReminder.fulfilled, (state, action) => {
-        const newReminder = action.payload;
-        if (newReminder) {
-          state.reminders.unshift(newReminder);
-          // Create system notification
-          notificationService.reminderCreated(newReminder);
+        // Ensure reminders remains an array even on error
+        if (!Array.isArray(state.reminders)) {
+          state.reminders = [];
         }
       })
+      // Create reminder
+      .addCase(createReminder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createReminder.fulfilled, (state, action) => {
+        state.loading = false;
+        // Sanitize created reminder data
+        const sanitizedReminder = {
+          ...action.payload,
+          title: action.payload.title && action.payload.title !== 'null' ? action.payload.title : '',
+          description: action.payload.description && action.payload.description !== 'null' ? action.payload.description : '',
+          priority: action.payload.priority && action.payload.priority !== 'null' ? action.payload.priority : 'medium'
+        };
+        state.reminders.push(sanitizedReminder);
+      })
       .addCase(createReminder.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       })
-      
       // Update reminder
+      .addCase(updateReminder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateReminder.fulfilled, (state, action) => {
+        state.loading = false;
         const index = state.reminders.findIndex(reminder => reminder.id === action.payload.id);
         if (index !== -1) {
-          state.reminders[index] = action.payload;
+          // Sanitize updated reminder data
+          const sanitizedReminder = {
+            ...action.payload,
+            title: action.payload.title && action.payload.title !== 'null' ? action.payload.title : '',
+            description: action.payload.description && action.payload.description !== 'null' ? action.payload.description : '',
+            priority: action.payload.priority && action.payload.priority !== 'null' ? action.payload.priority : 'medium'
+          };
+          state.reminders[index] = sanitizedReminder;
         }
       })
       .addCase(updateReminder.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       })
-      
       // Delete reminder
+      .addCase(deleteReminder.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(deleteReminder.fulfilled, (state, action) => {
+        state.loading = false;
         state.reminders = state.reminders.filter(reminder => reminder.id !== action.payload);
       })
       .addCase(deleteReminder.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      
-      // Complete reminder
-      .addCase(completeReminder.fulfilled, (state, action) => {
-        const index = state.reminders.findIndex(reminder => reminder.id === action.payload.id);
-        if (index !== -1) {
-          state.reminders[index] = action.payload;
-        }
-      })
-      .addCase(completeReminder.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      
-      // Create reminder from message
-      .addCase(createReminderFromMessage.fulfilled, (state, action) => {
-        state.reminders.unshift(action.payload);
-      })
-      .addCase(createReminderFromMessage.rejected, (state, action) => {
-        state.error = action.payload;
-      })
-      
-      // Fetch upcoming reminders
-      .addCase(fetchUpcomingReminders.fulfilled, (state, action) => {
-        const data = action.payload;
-        if (Array.isArray(data)) {
-          state.upcomingReminders = data;
-        } else if (data && Array.isArray(data.reminders)) {
-          state.upcomingReminders = data.reminders;
-        } else if (data && Array.isArray(data.data)) {
-          state.upcomingReminders = data.data;
-        } else {
-          console.warn('Unexpected upcoming reminders data format:', data);
-          state.upcomingReminders = [];
-        }
-      })
-      .addCase(fetchUpcomingReminders.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
       });
   }
 });
 
 export const {
-  clearError,
   setFilter,
-  setSortBy
+  setSortBy,
+  clearError,
+  addReminderLocal,
+  updateReminderLocal,
+  deleteReminderLocal,
+  markAsTriggered
 } = remindersSlice.actions;
 
 export default remindersSlice.reducer;

@@ -18,20 +18,16 @@ import {
   ListItem,
   ListItemText,
   ListItemButton,
-  Tabs,
-  Tab,
   Alert,
-  CircularProgress,
-  Tooltip,
-  Divider
+  Tooltip
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Translate as TranslateIcon,
   SwapHoriz as SwapHorizIcon,
   ContentCopy as ContentCopyIcon,
   VolumeUp as VolumeUpIcon,
   Clear as ClearIcon,
-  History as HistoryIcon,
   Psychology as AutoDetectIcon
 } from '@mui/icons-material';
 import {
@@ -58,11 +54,8 @@ const Translator = () => {
     translatedText,
     translationHistory,
     loading,
-    error,
-    detectedLanguage
+    error
   } = useSelector((state) => state.translator);
-
-  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     dispatch(fetchLanguages());
@@ -133,10 +126,10 @@ const Translator = () => {
   };
 
   const renderTranslationHistory = () => (
-    <Card sx={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+    <Card>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: '#06b6d4' }}>
+          <Typography variant="h6" sx={{ color: 'primary.main' }}>
             Translation History
           </Typography>
           {translationHistory.length > 0 && (
@@ -144,7 +137,7 @@ const Translator = () => {
               startIcon={<ClearIcon />}
               onClick={() => dispatch(clearHistory())}
               size="small"
-              sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
+              sx={{ color: 'text.secondary' }}
             >
               Clear
             </Button>
@@ -152,7 +145,7 @@ const Translator = () => {
         </Box>
         
         {translationHistory.length === 0 ? (
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             No translation history yet
           </Typography>
         ) : (
@@ -169,16 +162,16 @@ const Translator = () => {
                   <ListItemText
                     primary={
                       <Box>
-                        <Typography variant="body2" sx={{ color: 'white' }}>
+                        <Typography variant="body2" sx={{ color: 'text.primary' }}>
                           {item.originalText}
                         </Typography>
-                        <Typography variant="body2" sx={{ color: '#06b6d4', mt: 1 }}>
+                        <Typography variant="body2" sx={{ color: 'primary.main', mt: 1 }}>
                           {item.translatedText}
                         </Typography>
                       </Box>
                     }
                     secondary={
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {getLanguageName(item.sourceLang)} → {getLanguageName(item.targetLang)} • {' '}
                         {new Date(item.timestamp).toLocaleDateString()}
                       </Typography>
@@ -196,13 +189,13 @@ const Translator = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <PageHeader
-        title="Translator"
-        subtitle="Translate text between multiple languages instantly"
+        title="AI Translator"
+        subtitle="Translate text between multiple languages using advanced AI technology"
         icon={<TranslateIcon />}
       />
 
       {/* Language Selection */}
-      <Card sx={{ mb: 3, background: 'rgba(255, 255, 255, 0.05)' }}>
+      <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <FormControl sx={{ minWidth: 200 }}>
@@ -230,7 +223,7 @@ const Translator = () => {
               <IconButton
                 onClick={handleSwapLanguages}
                 disabled={sourceLang === 'auto'}
-                sx={{ color: '#06b6d4' }}
+                sx={{ color: 'primary.main' }}
               >
                 <SwapHorizIcon />
               </IconButton>
@@ -251,13 +244,6 @@ const Translator = () => {
               </Select>
             </FormControl>
           </Box>
-
-          {detectedLanguage && sourceLang === 'auto' && (
-            <Alert severity="info" sx={{ mt: 2 }}>
-              Detected language: {getLanguageName(detectedLanguage.language)} 
-              ({Math.round(detectedLanguage.confidence * 100)}% confidence)
-            </Alert>
-          )}
         </CardContent>
       </Card>
 
@@ -272,10 +258,10 @@ const Translator = () => {
       <Box sx={{ display: 'flex', gap: 3 }}>
         {/* Input Section */}
         <Box sx={{ flex: 1 }}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+          <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ color: '#06b6d4' }}>
+                <Typography variant="h6" sx={{ color: 'primary.main' }}>
                   {getLanguageName(sourceLang)}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -291,13 +277,15 @@ const Translator = () => {
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Listen">
-                    <IconButton
-                      onClick={() => speakText(originalText, sourceLang)}
-                      disabled={!originalText.trim()}
-                      sx={{ color: '#06b6d4' }}
-                    >
-                      <VolumeUpIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        onClick={() => speakText(originalText, sourceLang)}
+                        disabled={!originalText.trim()}
+                        sx={{ color: 'primary.main' }}
+                      >
+                        <VolumeUpIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </Box>
               </Box>
@@ -306,25 +294,16 @@ const Translator = () => {
                 fullWidth
                 multiline
                 rows={8}
-                placeholder="Enter text to translate... Try full sentences like 'How are you today?' or 'Where is the train station?'"
+                placeholder="Enter text to translate... AI-powered translation supports full sentences, paragraphs, and complex text!"
                 value={originalText}
                 onChange={(e) => dispatch(setOriginalText(e.target.value))}
                 variant="outlined"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                    '&:hover fieldset': { borderColor: '#06b6d4' },
-                    '&.Mui-focused fieldset': { borderColor: '#06b6d4' }
-                  },
-                  '& .MuiInputBase-input': { color: 'white' }
-                }}
               />
 
               {/* Example Sentences */}
               <Box sx={{ mt: 2 }}>
                 <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', mb: 1, display: 'block' }}>
-                  💡 Try these example sentences:
+                  🤖 AI-Powered Translation - Try these examples:
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {[
@@ -341,15 +320,9 @@ const Translator = () => {
                       variant="outlined"
                       onClick={() => dispatch(setOriginalText(example))}
                       sx={{
-                        color: 'rgba(255, 255, 255, 0.8)',
-                        borderColor: 'rgba(255, 255, 255, 0.3)',
                         fontSize: '0.75rem',
                         py: 0.5,
-                        px: 1,
-                        '&:hover': {
-                          borderColor: '#06b6d4',
-                          backgroundColor: 'rgba(6, 182, 212, 0.1)'
-                        }
+                        px: 1
                       }}
                     >
                       {example}
@@ -363,9 +336,8 @@ const Translator = () => {
                   variant="contained"
                   onClick={handleTranslate}
                   disabled={loading || !originalText.trim()}
-                  startIcon={loading ? <CircularProgress size={20} /> : <TranslateIcon />}
+                  startIcon={loading ? <LoadingSpinner size={16} type="modern" color="white" /> : <TranslateIcon />}
                   sx={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     minWidth: 150
                   }}
                 >
@@ -378,30 +350,34 @@ const Translator = () => {
 
         {/* Output Section */}
         <Box sx={{ flex: 1 }}>
-          <Card sx={{ background: 'rgba(255, 255, 255, 0.05)' }}>
+          <Card>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ color: '#06b6d4' }}>
+                <Typography variant="h6" sx={{ color: 'primary.main' }}>
                   {getLanguageName(targetLang)}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Tooltip title="Copy translation">
-                    <IconButton
-                      onClick={() => copyToClipboard(translatedText)}
-                      disabled={!translatedText}
-                      sx={{ color: '#06b6d4' }}
-                    >
-                      <ContentCopyIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        onClick={() => copyToClipboard(translatedText)}
+                        disabled={!translatedText}
+                        sx={{ color: 'primary.main' }}
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                   <Tooltip title="Listen">
-                    <IconButton
-                      onClick={() => speakText(translatedText, targetLang)}
-                      disabled={!translatedText}
-                      sx={{ color: '#06b6d4' }}
-                    >
-                      <VolumeUpIcon />
-                    </IconButton>
+                    <span>
+                      <IconButton
+                        onClick={() => speakText(translatedText, targetLang)}
+                        disabled={!translatedText}
+                        sx={{ color: 'primary.main' }}
+                      >
+                        <VolumeUpIcon />
+                      </IconButton>
+                    </span>
                   </Tooltip>
                 </Box>
               </Box>
@@ -410,9 +386,9 @@ const Translator = () => {
                 sx={{
                   minHeight: 200,
                   p: 2,
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   borderRadius: 1,
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   display: 'flex',
                   alignItems: translatedText ? 'flex-start' : 'center',
                   justifyContent: translatedText ? 'flex-start' : 'center'
@@ -420,17 +396,17 @@ const Translator = () => {
               >
                 {loading ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <CircularProgress size={24} />
+                    <LoadingSpinner size={24} type="pulse" color="#06b6d4" />
                     <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                       Translating...
                     </Typography>
                   </Box>
                 ) : translatedText ? (
-                  <Typography sx={{ color: 'white', whiteSpace: 'pre-wrap' }}>
+                  <Typography sx={{ color: 'text.primary', whiteSpace: 'pre-wrap' }}>
                     {translatedText}
                   </Typography>
                 ) : (
-                  <Typography sx={{ color: 'rgba(255, 255, 255, 0.5)' }}>
+                  <Typography sx={{ color: 'text.secondary' }}>
                     Translation will appear here
                   </Typography>
                 )}

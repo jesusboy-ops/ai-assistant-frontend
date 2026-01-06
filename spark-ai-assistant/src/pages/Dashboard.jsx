@@ -19,16 +19,13 @@ import {
   CalendarMonth as CalendarIcon,
   Folder as FolderIcon,
   ArrowForward as ArrowForwardIcon,
-  TrendingUp,
   AutoAwesome as SparkIcon,
   PictureAsPdf as PdfIcon,
-  MoreVert as MoreVertIcon,
   MenuBook as MenuBookIcon,
   Assignment as TaskIcon,
   Translate as TranslateIcon,
   Notifications as NotificationsIcon,
-  Calculate as CalculateIcon,
-  Summarize as SummarizeIcon
+  Calculate as CalculateIcon
 } from '@mui/icons-material';
 import { useSelector } from 'react-redux';
 import PageHeader from '../components/PageHeader';
@@ -48,7 +45,6 @@ const Dashboard = () => {
   const { reminders } = useSelector((state) => state.reminders);
   const { translationHistory } = useSelector((state) => state.translator);
   const { calculationHistory } = useSelector((state) => state.math);
-  const { summaries } = useSelector((state) => state.documentSummarizer);
   const { searchHistory } = useSelector((state) => state.dictionary);
 
   // Quick stats cards - Enhanced with more explicit data
@@ -135,15 +131,7 @@ const Dashboard = () => {
       icon: <ChatIcon sx={{ fontSize: 28 }} />,
       path: '/chat',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      features: ['Real-time responses', 'Context aware', 'Multi-format support']
-    },
-    {
-      title: 'Dictionary Lookup',
-      description: 'Search for word definitions, pronunciations, synonyms, and save favorites for vocabulary building',
-      icon: <MenuBookIcon sx={{ fontSize: 28 }} />,
-      path: '/dictionary',
-      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-      features: ['Pronunciations', 'Synonyms', 'Save favorites']
+      features: ['Study Mode', 'Context aware', 'Multi-format support']
     },
     {
       title: 'Manage Tasks',
@@ -154,12 +142,12 @@ const Dashboard = () => {
       features: ['AI suggestions', 'Due dates', 'Priorities']
     },
     {
-      title: 'Translate Text',
-      description: 'Translate text between multiple languages instantly with pronunciation and history tracking',
-      icon: <TranslateIcon sx={{ fontSize: 28 }} />,
-      path: '/translator',
-      gradient: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-      features: ['Multi-language', 'Audio playback', 'History']
+      title: 'Take Notes',
+      description: 'Create and organize your study notes with AI assistance, formatting, and easy sharing',
+      icon: <NoteIcon sx={{ fontSize: 28 }} />,
+      path: '/notes',
+      gradient: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+      features: ['Rich formatting', 'AI summaries', 'Easy sharing']
     },
     {
       title: 'Set Reminders',
@@ -170,20 +158,20 @@ const Dashboard = () => {
       features: ['Smart detection', 'Notifications', 'Calendar sync']
     },
     {
-      title: 'Math Solver',
-      description: 'Solve mathematical expressions quickly with optional step-by-step explanations and history',
-      icon: <CalculateIcon sx={{ fontSize: 28 }} />,
-      path: '/math',
+      title: 'Calendar Events',
+      description: 'Schedule and manage your events, meetings, and appointments with calendar integration',
+      icon: <CalendarIcon sx={{ fontSize: 28 }} />,
+      path: '/calendar',
       gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-      features: ['Step-by-step', 'History', 'Quick solve']
+      features: ['Event scheduling', 'Reminders', 'Month view']
     },
     {
-      title: 'Generate Email',
-      description: 'Create professional emails with AI assistance for business communications and follow-ups',
-      icon: <EmailIcon sx={{ fontSize: 28 }} />,
-      path: '/emails',
+      title: 'Dictionary Lookup',
+      description: 'Search for word definitions, pronunciations, synonyms, and save favorites for vocabulary building',
+      icon: <MenuBookIcon sx={{ fontSize: 28 }} />,
+      path: '/dictionary',
       gradient: 'linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%)',
-      features: ['Templates', 'Tone adjustment', 'Grammar check']
+      features: ['Pronunciations', 'Synonyms', 'Save favorites']
     }
   ];
 
@@ -742,7 +730,7 @@ const Dashboard = () => {
               </Card>
             </Grid>
 
-            {/* Upcoming Events - Same width as calendar */}
+            {/* Upcoming Events */}
             <Grid size={{ xs: 12, lg: 6 }} sx={{ display: 'flex', justifyContent: { xs: 'center', lg: 'flex-start' } }}>
               <Card
                 sx={{

@@ -24,7 +24,7 @@ const createAxiosInstance = (baseURL) => {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest'
     },
-    timeout: 15000, // Reduced timeout for faster fallback
+    timeout: 2000, // ULTRA FAST 2 seconds
     withCredentials: false
   });
 };
@@ -78,6 +78,25 @@ const addResponseInterceptor = (instance) => {
         console.log('🚨 400 Bad Request Details:');
         console.log('  Error Message:', error.response?.data?.message || error.response?.data?.error || 'No error message provided');
         console.log('  Validation Errors:', error.response?.data?.errors || error.response?.data?.details || 'No validation details');
+        console.log('  Full Response:', JSON.stringify(error.response?.data, null, 2));
+        
+        // Try to parse and format the error for better user experience
+        if (error.response?.data) {
+          const errorData = error.response.data;
+          if (errorData.errors && Array.isArray(errorData.errors)) {
+            const errorMessages = errorData.errors.map(err => {
+              if (typeof err === 'string') return err;
+              if (err.message) return err.message;
+              if (err.msg) return err.msg;
+              return JSON.stringify(err);
+            });
+            error.userMessage = errorMessages.join(', ');
+          } else if (errorData.message) {
+            error.userMessage = errorData.message;
+          } else if (errorData.error) {
+            error.userMessage = errorData.error;
+          }
+        }
       }
       
       if (error.response?.status === 401) {
@@ -159,10 +178,22 @@ const smartAxiosInstance = {
   delete: (url, config = {}) => smartRequest({ ...config, method: 'DELETE', url })
 };
 
-// Enhanced health check function
+// Enhanced health check function with wake-up capability
 export const checkBackendHealth = async () => {
   try {
     console.log('🔍 Checking backend health...');
+    
+    // First, try to wake up the backend with a simple request
+    try {
+      console.log('⏰ Attempting to wake up backend...');
+      await smartRequest({ 
+        method: 'GET', 
+        url: '/', 
+        timeout: 45000 // Extended timeout for wake-up
+      });
+    } catch (wakeUpError) {
+      console.log('⏰ Wake-up request completed (may have failed, but backend should be starting)');
+    }
     
     // Test endpoints in order of preference
     const testEndpoints = ['/api/health', '/api/tasks', '/api/life-admin/stats', '/'];
@@ -172,7 +203,7 @@ export const checkBackendHealth = async () => {
         const response = await smartRequest({ 
           method: 'GET', 
           url: endpoint, 
-          timeout: 8000 
+          timeout: 30000 
         });
         
         console.log(`✅ Backend responding at ${endpoint}:`, response.status);
@@ -218,6 +249,27 @@ export const checkBackendHealth = async () => {
         ? 'Backend is not accessible. Please check if the backend server is running.'
         : error.message || 'Unknown connection error'
     };
+  }
+};
+
+// Function to wake up the backend (useful for Render.com free tier)
+export const wakeUpBackend = async () => {
+  console.log('⏰ Waking up backend server...');
+  
+  try {
+    // Make a simple request to wake up the server
+    await smartRequest({ 
+      method: 'GET', 
+      url: '/', 
+      timeout: 45000 // Long timeout for cold start
+    });
+    
+    console.log('✅ Backend wake-up request completed');
+    return { success: true, message: 'Backend is now active' };
+  } catch (error) {
+    console.log('⏰ Wake-up request completed (backend should be starting)');
+    // Even if this fails, the backend might be starting up
+    return { success: true, message: 'Backend wake-up initiated' };
   }
 };
 

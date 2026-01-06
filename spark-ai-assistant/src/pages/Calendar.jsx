@@ -1,372 +1,519 @@
-// Calendar page
-import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+// Calendar page component
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
   Typography,
+  Button,
   Card,
   CardContent,
-  Button,
+  Grid,
+  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Grid,
-  Chip,
-  IconButton,
-  alpha
+  Alert,
+  Fab
 } from '@mui/material';
+import LoadingSpinner from '../components/LoadingSpinner';
 import {
   CalendarMonth as CalendarIcon,
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Event as EventIcon
+  ChevronLeft as PrevIcon,
+  ChevronRight as NextIcon,
+  Today as TodayIcon
 } from '@mui/icons-material';
-import { addEvent, deleteEvent, updateEvent } from '../store/slices/calendarSlice';
-import PageHeader from '../components/PageHeader';
+import { fetchEvents, createEvent, updateEvent, deleteEvent, setCurrentDate } from '../store/slices/calendarSlice';
 import toast from '../utils/toast';
 
 const Calendar = () => {
   const dispatch = useDispatch();
-  const { events } = useSelector((state) => state.calendar);
+  const { events: rawEvents, loading, error, currentDate } = useSelector((state) => state.calendar);
   
-  const [dialogOpen, setDialogOpen] = useState(false);
+  // Ensure events is always an array with proper fallback
+  const events = Array.isArray(rawEvents) ? rawEvents : (rawEvents ? [] : []);
+  const [showEventDialog, setShowEventDialog] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
-  const [formData, setFormData] = useState({
+  const [eventForm, setEventForm] = useState({
     title: '',
     description: '',
-    date: new Date().toISOString().split('T')[0],
-    time: '09:00',
-    color: '#667eea'
+    date: '',
+    time: '',
+    duration: 60,
+    color: '#667eea',
+    location: ''
   });
 
-  const eventColors = [
-    { name: 'Blue', value: '#667eea' },
-    { name: 'Green', value: '#10b981' },
-    { name: 'Orange', value: '#f59e0b' },
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Purple', value: '#8b5cf6' },
-    { name: 'Cyan', value: '#06b6d4' }
-  ];
+  useEffect(() => {
+    dispatch(fetchEvents());
+  }, [dispatch]);
 
-  const handleOpenDialog = (event = null) => {
-    if (event) {
-      setEditingEvent(event);
-      setFormData({
-        title: event.title,
-        description: event.description || '',
-        date: event.date,
-        time: event.time,
-        color: event.color
-      });
-    } else {
-      setEditingEvent(null);
-      setFormData({
-        title: '',
-        description: '',
-        date: new Date().toISOString().split('T')[0],
-        time: '09:00',
-        color: '#667eea'
-      });
-    }
-    setDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setEditingEvent(null);
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = () => {
-    if (!formData.title.trim()) {
-      toast.error('Please enter an event title');
+  const handleCreateEvent = async () => {
+    if (!eventForm.title.trim()) {
+      toast.error('Event title is required');
       return;
     }
 
-    const eventData = {
-      ...formData,
-      id: editingEvent ? editingEvent.id : Date.now().toString(),
-      createdAt: editingEvent ? editingEvent.createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    if (editingEvent) {
-      dispatch(updateEvent(eventData));
-      toast.success('Event updated successfully');
-    } else {
-      dispatch(addEvent(eventData));
-      toast.success('Event created successfully');
+    if (!eventForm.date) {
+      toast.error('Event date is required');
+      return;
     }
 
-    handleCloseDialog();
+    try {
+      if (editingEvent) {
+        await dispatch(updateEvent({ id: editingEvent.id, updates: eventForm })).unwrap();
+        toast.success('Event updated successfully');
+      } else {
+        await dispatch(createEvent(eventForm)).unwrap();
+        toast.success('Event created successfully');
+      }
+      
+      setShowEventDialog(false);
+      setEditingEvent(null);
+      setEventForm({ title: '', description: '', date: '', time: '', duration: 60, color: '#667eea', location: '' });
+    } catch (error) {
+      toast.error(error || 'Failed to save event');
+    }
   };
 
-  const handleDeleteEvent = (eventId) => {
-    dispatch(deleteEvent(eventId));
-    toast.success('Event deleted successfully');
-  };
-
-  const formatEventDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const handleEditEvent = (event) => {
+    setEditingEvent(event);
+    setEventForm({
+      title: event.title || '',
+      description: event.description || '',
+      date: event.date || '',
+      time: event.time || '',
+      duration: event.duration || 60,
+      color: event.color || '#667eea',
+      location: event.location || ''
     });
+    setShowEventDialog(true);
   };
 
-  const formatEventTime = (time) => {
-    return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+  const handleDeleteEvent = async (eventId) => {
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await dispatch(deleteEvent(eventId)).unwrap();
+        toast.success('Event deleted successfully');
+      } catch (error) {
+        toast.error(error || 'Failed to delete event');
+      }
+    }
   };
+
+  const handleDateClick = (date) => {
+    setEventForm({ ...eventForm, date: date });
+    setShowEventDialog(true);
+  };
+
+  const navigateMonth = (direction) => {
+    const current = new Date(currentDate);
+    const newDate = new Date(current.getFullYear(), current.getMonth() + direction, 1);
+    dispatch(setCurrentDate(newDate.toISOString().split('T')[0]));
+  };
+
+  const goToToday = () => {
+    dispatch(setCurrentDate(new Date().toISOString().split('T')[0]));
+  };
+
+  // Generate calendar days
+  const generateCalendarDays = () => {
+    const current = new Date(currentDate);
+    const year = current.getFullYear();
+    const month = current.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const startDate = new Date(firstDay);
+    startDate.setDate(startDate.getDate() - firstDay.getDay());
+    
+    const days = [];
+    const iteratorDate = new Date(startDate); // Renamed to avoid conflict
+    
+    for (let i = 0; i < 42; i++) {
+      // Ensure events is always an array before filtering
+      const safeEvents = Array.isArray(events) ? events : [];
+      const dayEvents = safeEvents.filter(event => {
+        if (!event || !event.date) return false;
+        try {
+          const eventDate = new Date(event.date);
+          return eventDate.toDateString() === iteratorDate.toDateString();
+        } catch (e) {
+          console.warn('Invalid event date:', event);
+          return false;
+        }
+      });
+      
+      days.push({
+        date: new Date(iteratorDate),
+        dayNumber: iteratorDate.getDate(),
+        isCurrentMonth: iteratorDate.getMonth() === month,
+        isToday: iteratorDate.toDateString() === new Date().toDateString(),
+        events: dayEvents
+      });
+      
+      iteratorDate.setDate(iteratorDate.getDate() + 1);
+    }
+    
+    return days;
+  };
+
+  const calendarDays = generateCalendarDays();
+  const currentMonthYear = new Date(currentDate).toLocaleDateString('en-US', { 
+    month: 'long', 
+    year: 'numeric' 
+  });
+
+  const todaysEvents = Array.isArray(events) ? events.filter(event => {
+    if (!event || !event.date) return false;
+    try {
+      const eventDate = new Date(event.date);
+      const today = new Date();
+      return eventDate.toDateString() === today.toDateString();
+    } catch (e) {
+      console.warn('Invalid event date:', event);
+      return false;
+    }
+  }) : [];
+
+  const upcomingEvents = Array.isArray(events) ? events
+    .filter(event => {
+      if (!event || !event.date) return false;
+      try {
+        const eventDate = new Date(event.date);
+        const today = new Date();
+        return eventDate > today;
+      } catch (e) {
+        console.warn('Invalid event date:', event);
+        return false;
+      }
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+    .slice(0, 5) : [];
 
   return (
-    <Box sx={{ maxWidth: 1400, margin: '0 auto' }}>
-      <PageHeader
-        title="Calendar"
-        subtitle="Manage your events and schedule"
-        action={
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenDialog()}
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              paddingX: 3,
-              paddingY: 1.25,
-              fontWeight: 600,
-              '&:hover': {
-                background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
-                }
-            }}
-          >
-            Create Event
-          </Button>
-        }
-      />
+    <Box sx={{ p: 3 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <CalendarIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
+          <Box>
+            <Typography variant="h4" component="h1" fontWeight={700}>
+              Calendar
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Manage your events and schedule
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
 
-      {/* Events List */}
-      {events.length === 0 ? (
-        <Card
-          sx={{
-            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
-            border: '1px solid rgba(102, 126, 234, 0.3)',
-            borderRadius: 3
-            }}
-        >
-          <CardContent>
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 8,
-                color: 'text.secondary'
-              }}
-            >
-              <Box
-                sx={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: 3,
-                  background: `linear-gradient(135deg, ${alpha('#f59e0b', 0.2)} 0%, ${alpha('#f59e0b', 0.1)} 100%)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 3
-                }}
-              >
-                <CalendarIcon sx={{ fontSize: 64, color: '#f59e0b' }} />
-              </Box>
-              <Typography variant="h5" sx={{ marginBottom: 1.5, fontWeight: 600 }}>
-                No Events Yet
+      {/* Stats Cards */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" color="primary">
+                {events.length}
               </Typography>
-              <Typography variant="body1" sx={{ marginBottom: 4, textAlign: 'center', maxWidth: 500, opacity: 0.8 }}>
-                Create your first event to start organizing your schedule
+              <Typography variant="body2" color="text.secondary">
+                Total Events
               </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => handleOpenDialog()}
-                sx={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  paddingX: 4,
-                  paddingY: 1.5,
-                  fontWeight: 600
-                }}
-              >
-                Create Your First Event
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
-      ) : (
-        <Grid container spacing={3}>
-          {events
-            .sort((a, b) => new Date(a.date + 'T' + a.time) - new Date(b.date + 'T' + b.time))
-            .map((event) => (
-              <Grid item xs={12} md={6} lg={4} key={event.id}>
-                <Card
-                  sx={{
-                    height: '100%',
-                    background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.8) 0%, rgba(26, 26, 46, 0.8) 100%)',
-                    border: `1px solid ${alpha(event.color, 0.3)}`,
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-4px)'
-                      }
-                  }}
-                >
-                  <CardContent sx={{ padding: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          background: `linear-gradient(135deg, ${event.color} 0%, ${alpha(event.color, 0.8)} 100%)`,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                          }}
-                      >
-                        <EventIcon sx={{ color: 'white', fontSize: 24 }} />
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenDialog(event)}
-                          sx={{
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            '&:hover': {
-                              color: event.color,
-                              backgroundColor: alpha(event.color, 0.1)
-                            }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteEvent(event.id)}
-                          sx={{
-                            color: 'rgba(255, 255, 255, 0.7)',
-                            '&:hover': {
-                              color: '#ef4444',
-                              backgroundColor: alpha('#ef4444', 0.1)
-                            }
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    <Typography variant="h6" sx={{ fontWeight: 600, marginBottom: 1, color: 'white' }}>
-                      {event.title}
-                    </Typography>
-
-                    {event.description && (
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', marginBottom: 2, lineHeight: 1.5 }}>
-                        {event.description}
-                      </Typography>
-                    )}
-
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      <Chip
-                        label={formatEventDate(event.date)}
-                        size="small"
-                        sx={{
-                          backgroundColor: alpha(event.color, 0.2),
-                          color: event.color,
-                          fontWeight: 600,
-                          fontSize: '0.75rem'
-                        }}
-                      />
-                      <Chip
-                        label={formatEventTime(event.time)}
-                        size="small"
-                        sx={{
-                          backgroundColor: alpha(event.color, 0.1),
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          fontWeight: 500,
-                          fontSize: '0.75rem'
-                        }}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+            </CardContent>
+          </Card>
         </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" color="success.main">
+                {todaysEvents.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Today's Events
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" color="warning.main">
+                {upcomingEvents.length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Upcoming Events
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" color="info.main">
+                {new Date(currentDate).toLocaleDateString('en-US', { month: 'long' })}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Current Month
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Error Alert */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {error}
+        </Alert>
       )}
 
-      {/* Create/Edit Event Dialog */}
-      <Dialog
-        open={dialogOpen}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(26, 26, 46, 0.95) 100%)',
-            border: '1px solid rgba(102, 126, 234, 0.3)',
-            borderRadius: 3
-          }
-        }}
+      <Grid container spacing={3}>
+        {/* Calendar */}
+        <Grid item xs={12} lg={8}>
+          <Card>
+            <CardContent>
+              {/* Calendar Header */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton onClick={() => navigateMonth(-1)}>
+                    <PrevIcon />
+                  </IconButton>
+                  <Typography variant="h6" sx={{ minWidth: 200, textAlign: 'center' }}>
+                    {currentMonthYear}
+                  </Typography>
+                  <IconButton onClick={() => navigateMonth(1)}>
+                    <NextIcon />
+                  </IconButton>
+                </Box>
+                <Button
+                  variant="outlined"
+                  startIcon={<TodayIcon />}
+                  onClick={goToToday}
+                  size="small"
+                >
+                  Today
+                </Button>
+              </Box>
+
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                  <LoadingSpinner size={32} type="pulse" color="#06b6d4" text="Loading events..." />
+                </Box>
+              ) : (
+                <>
+                  {/* Days of Week Header */}
+                  <Grid container sx={{ mb: 1 }}>
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                      <Grid item xs key={day} sx={{ textAlign: 'center', p: 1 }}>
+                        <Typography variant="caption" fontWeight={600} color="text.secondary">
+                          {day}
+                        </Typography>
+                      </Grid>
+                    ))}
+                  </Grid>
+
+                  {/* Calendar Grid */}
+                  <Grid container>
+                    {calendarDays.map((day, index) => (
+                      <Grid item xs key={index} sx={{ aspectRatio: '1', minHeight: 80 }}>
+                        <Box
+                          sx={{
+                            height: '100%',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            p: 0.5,
+                            cursor: 'pointer',
+                            backgroundColor: day.isToday ? 'primary.light' : 'transparent',
+                            opacity: day.isCurrentMonth ? 1 : 0.3,
+                            '&:hover': {
+                              backgroundColor: day.isToday ? 'primary.main' : 'action.hover'
+                            }
+                          }}
+                          onClick={() => handleDateClick(day.date.toISOString().split('T')[0])}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: day.isToday ? 700 : 400,
+                              color: day.isToday ? 'primary.contrastText' : 'text.primary'
+                            }}
+                          >
+                            {day.dayNumber}
+                          </Typography>
+                          {day.events.map((event, eventIndex) => (
+                            <Box
+                              key={eventIndex}
+                              sx={{
+                                backgroundColor: event.color || '#667eea',
+                                color: 'white',
+                                fontSize: '0.6rem',
+                                p: 0.25,
+                                borderRadius: 0.5,
+                                mb: 0.25,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {event.title}
+                            </Box>
+                          ))}
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Sidebar */}
+        <Grid item xs={12} lg={4}>
+          {/* Today's Events */}
+          <Card sx={{ mb: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Today's Events
+              </Typography>
+              {todaysEvents.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No events scheduled for today
+                </Typography>
+              ) : (
+                todaysEvents.map((event) => (
+                  <Box
+                    key={event.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 1,
+                      mb: 1,
+                      borderRadius: 1,
+                      backgroundColor: 'action.hover'
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        {event.title}
+                      </Typography>
+                      {event.time && (
+                        <Typography variant="caption" color="text.secondary">
+                          {event.time}
+                        </Typography>
+                      )}
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton size="small" onClick={() => handleEditEvent(event)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDeleteEvent(event.id)} color="error">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Events */}
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Upcoming Events
+              </Typography>
+              {upcomingEvents.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  No upcoming events
+                </Typography>
+              ) : (
+                upcomingEvents.map((event) => (
+                  <Box
+                    key={event.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 1,
+                      mb: 1,
+                      borderRadius: 1,
+                      backgroundColor: 'action.hover'
+                    }}
+                  >
+                    <Box>
+                      <Typography variant="body2" fontWeight={600}>
+                        {event.title}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(event.date).toLocaleDateString()}
+                        {event.time && ` at ${event.time}`}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <IconButton size="small" onClick={() => handleEditEvent(event)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDeleteEvent(event.id)} color="error">
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                ))
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Floating Action Button */}
+      <Fab
+        color="primary"
+        aria-label="add event"
+        sx={{ position: 'fixed', bottom: 16, right: 16 }}
+        onClick={() => setShowEventDialog(true)}
       >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: '1.5rem' }}>
+        <AddIcon />
+      </Fab>
+
+      {/* Event Dialog */}
+      <Dialog open={showEventDialog} onClose={() => setShowEventDialog(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
           {editingEvent ? 'Edit Event' : 'Create New Event'}
         </DialogTitle>
-        <DialogContent sx={{ paddingTop: 2 }}>
-          <Grid container spacing={3}>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Event Title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
+                value={eventForm.title}
+                onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
                 required
-                sx={{ marginBottom: 2 }}
               />
             </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
+                value={eventForm.description}
+                onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
                 multiline
                 rows={3}
-                sx={{ marginBottom: 2 }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Date"
-                name="date"
                 type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
+                value={eventForm.date}
+                onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
                 required
               />
             </Grid>
@@ -374,55 +521,44 @@ const Calendar = () => {
               <TextField
                 fullWidth
                 label="Time"
-                name="time"
                 type="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                InputLabelProps={{ shrink: true }}
-                required
+                value={eventForm.time}
+                onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Duration (minutes)"
+                type="number"
+                value={eventForm.duration}
+                onChange={(e) => setEventForm({ ...eventForm, duration: parseInt(e.target.value) })}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Color"
+                type="color"
+                value={eventForm.color}
+                onChange={(e) => setEventForm({ ...eventForm, color: e.target.value })}
               />
             </Grid>
             <Grid item xs={12}>
-              <Typography variant="subtitle2" sx={{ marginBottom: 2, color: 'rgba(255, 255, 255, 0.8)' }}>
-                Event Color
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {eventColors.map((color) => (
-                  <Box
-                    key={color.value}
-                    onClick={() => setFormData((prev) => ({ ...prev, color: color.value }))}
-                    sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2,
-                      background: color.value,
-                      cursor: 'pointer',
-                      border: formData.color === color.value ? '3px solid white' : '2px solid transparent',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        transform: 'scale(1.1)'
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
+              <TextField
+                fullWidth
+                label="Location"
+                value={eventForm.location}
+                onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
+              />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ padding: 3, gap: 2 }}>
-          <Button onClick={handleCloseDialog} sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              paddingX: 3,
-              fontWeight: 600
-            }}
-          >
-            {editingEvent ? 'Update Event' : 'Create Event'}
+        <DialogActions>
+          <Button onClick={() => setShowEventDialog(false)}>Cancel</Button>
+          <Button onClick={handleCreateEvent} variant="contained">
+            {editingEvent ? 'Update' : 'Create'}
           </Button>
         </DialogActions>
       </Dialog>
