@@ -15,7 +15,7 @@ const openaiClient = axios.create({
       'X-Title': 'Spark AI Assistant'
     })
   },
-  timeout: 15000 // 15 second timeout (reduced from 30s)
+  // No timeout - let AI requests complete naturally
 });
 
 // Add request interceptor for debugging
@@ -247,16 +247,8 @@ When asked about who created you or who made you, always mention that you were c
         userMessage: message
       });
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Chat response timeout')), 25000); // 25 second timeout
-      });
-
-      // Create the API request promise
-      const apiPromise = openaiClient.post('/chat/completions', requestData);
-
-      // Race between API call and timeout
-      const response = await Promise.race([apiPromise, timeoutPromise]);
+      // Direct API call without timeout
+      const response = await openaiClient.post('/chat/completions', requestData);
 
       console.log('📥 Raw API response:', {
         status: response.status,
@@ -287,11 +279,6 @@ When asked about who created you or who made you, always mention that you were c
         url: error.config?.url,
         method: error.config?.method
       });
-      
-      // Handle timeout errors
-      if (error.message === 'Chat response timeout') {
-        throw new Error('AI response timed out. Please try again with a shorter message.');
-      }
       
       // Handle API errors
       if (error.response?.status === 401) {
@@ -378,13 +365,8 @@ Best regards,
       // Calculate appropriate max_tokens based on text length
       const estimatedTokens = Math.max(200, Math.min(1000, text.length * 1.5));
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Translation timeout')), 12000); // 12 second timeout
-      });
-
-      // Create the API request promise
-      const apiPromise = openaiClient.post('/chat/completions', {
+      // Direct API call without timeout
+      const response = await openaiClient.post('/chat/completions', {
         model: 'openai/gpt-3.5-turbo',
         messages: [
           {
@@ -403,9 +385,6 @@ ${text}`
         top_p: 0.9
       });
 
-      // Race between API call and timeout
-      const response = await Promise.race([apiPromise, timeoutPromise]);
-
       if (response.data?.choices?.[0]?.message?.content) {
         const translation = response.data.choices[0].message.content.trim();
         console.log('✅ AI translation completed successfully');
@@ -416,10 +395,6 @@ ${text}`
 
     } catch (error) {
       console.error('❌ AI translation error:', error);
-      
-      if (error.message === 'Translation timeout') {
-        throw new Error('Translation timed out. Please try again with shorter text.');
-      }
       
       throw error;
     }

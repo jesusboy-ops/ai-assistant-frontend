@@ -9,25 +9,13 @@ export const loginUser = createAsyncThunk(
     try {
       console.log('🔄 Starting login process...');
       
-      // Create a timeout promise - 8 seconds for faster response
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Login timeout')), 8000);
-      });
-
-      // Create the login promise
-      const loginPromise = authApi.login(email, password);
-
-      // Race between login and timeout
-      const result = await Promise.race([loginPromise, timeoutPromise]);
+      // Direct login without timeout
+      const result = await authApi.login(email, password);
       
       console.log('✅ Login successful');
       return result;
     } catch (error) {
       console.error('❌ Login failed:', error);
-      
-      if (error.message === 'Login timeout') {
-        return rejectWithValue('Login is taking too long. Please try again.');
-      }
       
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         return rejectWithValue('Connection timed out. Please check your internet connection.');
@@ -52,25 +40,13 @@ export const registerUser = createAsyncThunk(
     try {
       console.log('🔄 Starting registration process...');
       
-      // Create a timeout promise - 8 seconds for faster response
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Registration timeout')), 8000);
-      });
-
-      // Create the registration promise
-      const registerPromise = authApi.register(email, password, name);
-
-      // Race between registration and timeout
-      const result = await Promise.race([registerPromise, timeoutPromise]);
+      // Direct registration without timeout
+      const result = await authApi.register(email, password, name);
       
       console.log('✅ Registration successful');
       return result;
     } catch (error) {
       console.error('❌ Registration failed:', error);
-      
-      if (error.message === 'Registration timeout') {
-        return rejectWithValue('Registration is taking too long. Please try again.');
-      }
       
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         return rejectWithValue('Connection timed out. Please check your internet connection.');
@@ -95,25 +71,13 @@ export const forgotPasswordRequest = createAsyncThunk(
     try {
       console.log('🔄 Starting forgot password process...');
       
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
-      });
-
-      // Create the forgot password promise
-      const forgotPromise = authApi.forgotPassword(email);
-
-      // Race between request and timeout
-      const result = await Promise.race([forgotPromise, timeoutPromise]);
+      // Direct request without timeout
+      const result = await authApi.forgotPassword(email);
       
       console.log('✅ Forgot password request successful');
       return result;
     } catch (error) {
       console.error('❌ Forgot password request failed:', error);
-      
-      if (error.message === 'Request timeout') {
-        return rejectWithValue('Request timed out. Please try again.');
-      }
       
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
         return rejectWithValue('Connection timed out. Please check your internet connection.');

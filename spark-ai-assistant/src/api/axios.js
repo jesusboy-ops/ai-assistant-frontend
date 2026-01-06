@@ -26,7 +26,7 @@ const createAxiosInstance = (baseURL) => {
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest'
     },
-    timeout: 10000, // 10 seconds - faster response
+    // No timeout - let requests complete naturally
     withCredentials: false
   });
 };
@@ -190,8 +190,7 @@ export const checkBackendHealth = async () => {
       console.log('⏰ Attempting to wake up backend...');
       await smartRequest({ 
         method: 'GET', 
-        url: '/', 
-        timeout: 45000 // Extended timeout for wake-up
+        url: '/'
       });
     } catch (wakeUpError) {
       console.log('⏰ Wake-up request completed (may have failed, but backend should be starting)');
@@ -204,8 +203,7 @@ export const checkBackendHealth = async () => {
       try {
         const response = await smartRequest({ 
           method: 'GET', 
-          url: endpoint, 
-          timeout: 30000 
+          url: endpoint
         });
         
         console.log(`✅ Backend responding at ${endpoint}:`, response.status);
@@ -262,8 +260,7 @@ export const wakeUpBackend = async () => {
     // Make a simple request to wake up the server
     await smartRequest({ 
       method: 'GET', 
-      url: '/', 
-      timeout: 45000 // Long timeout for cold start
+      url: '/'
     });
     
     console.log('✅ Backend wake-up request completed');

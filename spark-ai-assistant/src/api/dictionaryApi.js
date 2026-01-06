@@ -3,9 +3,8 @@ import axios from 'axios';
 
 const DICTIONARY_BASE_URL = 'https://api.dictionaryapi.dev/api/v2/entries/en';
 
-// Create axios instance with timeout
+// Create axios instance without timeout
 const dictionaryClient = axios.create({
-  timeout: 8000, // 8 second timeout
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
