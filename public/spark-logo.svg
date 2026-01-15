@@ -1,0 +1,31 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="60" cy="60" r="55" fill="url(#gradient1)" opacity="0.2"/>
+  
+  <!-- Main Spark Icon -->
+  <path d="M60 20 L70 50 L90 45 L65 70 L75 95 L60 75 L45 95 L55 70 L30 45 L50 50 Z" 
+        fill="url(#gradient2)" 
+        stroke="white" 
+        stroke-width="2"/>
+  
+  <!-- Inner Glow -->
+  <circle cx="60" cy="60" r="15" fill="url(#gradient3)" opacity="0.6"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="gradient3">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#667eea;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+</svg>
