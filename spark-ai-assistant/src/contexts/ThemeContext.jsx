@@ -14,51 +14,37 @@ export const useThemeMode = () => {
 };
 
 export const ThemeContextProvider = ({ children }) => {
-  const [mode, setMode] = useState(getStoredTheme());
+  // Force dark mode always
+  const [mode, setMode] = useState('dark');
 
-  useEffect(() => {
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      if (mode === 'auto') {
-        // Force re-render when system preference changes
-        setMode('auto');
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, [mode]);
-
+  // Remove system theme change listener - we don't need it anymore
+  
   const toggleTheme = () => {
-    const newMode = mode === 'dark' ? 'light' : 'dark';
-    setMode(newMode);
-    setStoredTheme(newMode);
+    // Do nothing - dark mode only
+    console.log('Theme toggle disabled - dark mode only');
   };
 
   const setThemeMode = (newMode) => {
-    setMode(newMode);
-    setStoredTheme(newMode);
+    // Always set to dark mode
+    setMode('dark');
+    setStoredTheme('dark');
   };
 
-  // Determine actual theme to use
+  // Always return dark mode
   const getActualMode = () => {
-    if (mode === 'auto') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return mode;
+    return 'dark';
   };
 
-  const actualMode = getActualMode();
-  const theme = getTheme(actualMode);
+  const actualMode = 'dark';
+  const theme = getTheme('dark');
 
   const contextValue = {
-    mode,
-    actualMode,
+    mode: 'dark',
+    actualMode: 'dark',
     toggleTheme,
     setThemeMode,
-    isDark: actualMode === 'dark',
-    isLight: actualMode === 'light'
+    isDark: true,
+    isLight: false
   };
 
   return (

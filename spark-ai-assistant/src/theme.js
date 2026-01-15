@@ -310,26 +310,20 @@ export const lightTheme = createTheme({
   }
 });
 
-// Theme preference utilities
+// Theme preference utilities - FORCE DARK MODE ONLY
 export const getStoredTheme = () => {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('spark-theme-preference');
-    if (stored) return stored;
-    
-    // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-  }
-  return 'light'; // Default to light theme
+  // Always return dark mode - no light mode support
+  return 'dark';
 };
 
 export const setStoredTheme = (theme) => {
+  // Always store dark mode
   if (typeof window !== 'undefined') {
-    localStorage.setItem('spark-theme-preference', theme);
+    localStorage.setItem('spark-theme-preference', 'dark');
   }
 };
 
 export const getTheme = (mode) => {
-  return mode === 'light' ? lightTheme : darkTheme;
+  // Always return dark theme
+  return darkTheme;
 };
