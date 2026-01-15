@@ -5,35 +5,21 @@ Your API key works locally but not on Vercel because environment variables need 
 
 ## Quick Fix (5 minutes)
 
-### 1. Get a New API Key
-1. Go to https://openrouter.ai/keys
-2. Create a new API key
-3. Copy it immediately (you won't see it again)
-
-### 2. Add to Local Environment
-1. Open `spark-ai-assistant/.env.local`
-2. Replace the placeholder with your actual key:
-   ```
-   VITE_OPENAI_API_KEY=your_actual_key_here
-   ```
-3. Save the file
-4. Restart your dev server
-
-### 3. Add Environment Variable in Vercel
+### 1. Add Environment Variable in Vercel
 1. Go to https://vercel.com/dashboard
 2. Click your project
 3. Go to **Settings** → **Environment Variables**
 4. Click **Add New**
 5. Enter:
    - **Name**: `VITE_OPENAI_API_KEY`
-   - **Value**: [Paste your new API key]
+   - **Value**: `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`
    - **Environments**: Check all (Production, Preview, Development)
 6. Click **Save**
 
-### 4. Redeploy
+### 2. Redeploy
 Go to **Deployments** → Click (...) on latest → **Redeploy**
 
-### 5. Test
+### 3. Test
 Wait 1-2 minutes, then visit your site and try the chat.
 
 ## Verify It's Working
@@ -52,18 +38,10 @@ Open browser console (F12) and look for:
 2. You redeployed AFTER adding the variable
 3. The deployment completed successfully
 4. You're testing the production URL (not localhost)
-5. The API key is active at https://openrouter.ai/keys
 
 ### Get More Help:
 See `VERCEL_API_KEY_FIX.md` for detailed troubleshooting.
 
 ---
 
-## IMPORTANT SECURITY NOTES
-
-⚠️ **NEVER share your API key with anyone**
-⚠️ **NEVER commit API keys to git**
-⚠️ **NEVER include API keys in documentation or screenshots**
-⚠️ **If a key is exposed, immediately disable it and create a new one**
-
-The `.env.local` file is gitignored, so your local key is safe as long as you don't manually commit it.
+**Your API Key**: `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`
