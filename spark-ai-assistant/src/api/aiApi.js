@@ -4,9 +4,19 @@ import axios from 'axios';
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo';
 
+// Debug logging for API key
+console.log('🔑 API Key Status:', {
+  exists: !!OPENAI_API_KEY,
+  length: OPENAI_API_KEY?.length,
+  startsWithSk: OPENAI_API_KEY?.startsWith('sk-'),
+  isPlaceholder: OPENAI_API_KEY === 'your_openrouter_api_key_here'
+});
+
 // Check if API key is properly configured
 const isApiKeyConfigured = () => {
-  return OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openrouter_api_key_here' && OPENAI_API_KEY.length > 10;
+  const isConfigured = OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openrouter_api_key_here' && OPENAI_API_KEY.length > 10;
+  console.log('🔑 isApiKeyConfigured:', isConfigured);
+  return isConfigured;
 };
 
 // OpenAI/OpenRouter API client
