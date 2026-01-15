@@ -273,38 +273,13 @@ export const useChat = () => {
       console.log('💬 Adding user message:', userMessage);
       dispatch(addMessage(userMessage));
 
-      // Try real AI API first
+      // Try real AI API
       console.log('💬 Attempting real AI API call for:', message);
       
-      let aiResponse;
-      try {
-        // Get conversation history for context
-        const conversationHistory = messages.slice(-5); // Last 5 messages for context
-        aiResponse = await aiApi.generateChatResponse(message, conversationHistory);
-        console.log('💬 Real AI response received:', aiResponse);
-      } catch (aiError) {
-        console.error('💬 AI API failed with error:', aiError);
-        
-        // For authentication errors, fall back to local response silently
-        // Don't show error to user, just use local intelligent response
-        if (aiError.message.includes('authentication') || aiError.message.includes('API key') || aiError.message.includes('401')) {
-          console.log('💬 Authentication failed, using local intelligent response');
-          aiResponse = generateContextualResponse(message, isStudyMode, currentTopic);
-        } else {
-          // For other errors (rate limit, server error), show user message but still continue
-          console.log('💬 API error, using local response:', aiError.message);
-          aiResponse = generateContextualResponse(message, isStudyMode, currentTopic);
-          
-          // Show a subtle error message for non-auth errors
-          if (aiError.message.includes('rate limit')) {
-            toast.error('AI service is busy. Using local response.');
-          } else if (aiError.message.includes('server error')) {
-            toast.error('AI service temporarily unavailable. Using local response.');
-          }
-        }
-        
-        console.log('💬 Generated local response:', aiResponse);
-      }
+      // Get conversation history for context
+      const conversationHistory = messages.slice(-5); // Last 5 messages for context
+      const aiResponse = await aiApi.generateChatResponse(message, conversationHistory);
+      console.log('💬 Real AI response received:', aiResponse);
       
       // Add AI response after a short delay to simulate processing
       setTimeout(() => {
@@ -325,9 +300,10 @@ export const useChat = () => {
     } catch (err) {
       console.error('💬 Error in sendMessage:', err);
       
-      // Don't show error to user, just log it
-      console.log('💬 Unexpected error, this should not happen');
-      dispatch(setError('An unexpected error occurred'));
+      // Show error to user
+      const errorMessage = err.message || 'Failed to send message. Please check your API key configuration.';
+      toast.error(errorMessage);
+      dispatch(setError(errorMessage));
     } finally {
       dispatch(setSending(false));
     }
