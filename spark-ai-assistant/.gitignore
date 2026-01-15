@@ -15,6 +15,9 @@ dist-ssr
 # Environment files with sensitive data
 .env.local
 .env.*.local
+.env
+
+# IMPORTANT: Never commit files containing API keys or secrets!
 
 # Editor directories and files
 .vscode/*

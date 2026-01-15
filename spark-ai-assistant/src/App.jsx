@@ -1,4 +1,5 @@
 // Main App component with routing
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -6,6 +7,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { store, persistor } from './store/store';
 import ThemeContextProvider from './contexts/ThemeContext';
 import LoadingSpinner from './components/LoadingSpinner';
+import { wakeUpBackend } from './api/axios';
+import { debugEnvironment } from './utils/envDebug';
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
@@ -44,6 +47,12 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ToastNotification from './components/ToastNotification';
 
 function App() {
+  // Debug environment variables on app load
+  useEffect(() => {
+    debugEnvironment();
+    wakeUpBackend();
+  }, []);
+
   return (
     <Provider store={store}>
       <PersistGate loading={<LoadingSpinner size={32} type="modern" text="Loading..." fullScreen />} persistor={persistor}>

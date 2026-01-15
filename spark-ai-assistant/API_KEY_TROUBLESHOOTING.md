@@ -14,8 +14,10 @@ The file `spark-ai-assistant/.env.local` should exist with your API key.
 ### Step 2: Verify the content
 Open `.env.local` and make sure it contains:
 ```
-VITE_OPENAI_API_KEY=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
+VITE_OPENAI_API_KEY=your_actual_openrouter_api_key_here
 ```
+
+**IMPORTANT**: Replace `your_actual_openrouter_api_key_here` with your real OpenRouter API key from https://openrouter.ai/keys
 
 ### Step 3: Restart your development server
 **This is the most common fix!**
@@ -48,8 +50,10 @@ If you see `exists: false`, the .env.local file is not being read.
 4. Click **Add New**
 5. Set:
    - **Name**: `VITE_OPENAI_API_KEY`
-   - **Value**: `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`
+   - **Value**: `your_actual_openrouter_api_key_here`
    - **Environment**: Production (and Preview if needed)
+   
+   **IMPORTANT**: Use your real OpenRouter API key from https://openrouter.ai/keys
 6. Click **Save**
 
 ### Step 2: Redeploy
