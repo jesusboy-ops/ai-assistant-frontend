@@ -1,8 +1,8 @@
 {
-  "buildCommand": "cd spark-ai-assistant && npm run build",
-  "outputDirectory": "spark-ai-assistant/dist",
-  "installCommand": "cd spark-ai-assistant && npm install",
   "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/(.*)",
