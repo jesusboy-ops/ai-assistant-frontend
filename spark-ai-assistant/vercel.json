@@ -9,6 +9,10 @@
       "destination": "/index.html"
     }
   ],
+  "env": {
+    "VITE_API_BASE_URL": "https://ai-assistant-backend-oqpp.onrender.com",
+    "VITE_AI_MODEL": "gemini-1.5-flash"
+  },
   "headers": [
     {
       "source": "/(.*)",
