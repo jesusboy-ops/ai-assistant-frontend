@@ -2,6 +2,18 @@
 import axiosInstance, { wakeUpBackend } from './axios';
 
 export const authApi = {
+  // Wake up backend before authentication attempts
+  wakeUpServer: async () => {
+    try {
+      console.log('⏰ Waking up backend server for authentication...');
+      await wakeUpBackend();
+      return { success: true };
+    } catch (error) {
+      console.log('⏰ Backend wake-up completed (server should be starting)');
+      return { success: true }; // Return success even if wake-up fails
+    }
+  },
+
   // Register new user
   register: async (email, password, name) => {
     const response = await axiosInstance.post('/api/auth/register', {

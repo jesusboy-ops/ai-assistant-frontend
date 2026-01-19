@@ -7,12 +7,19 @@ export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
+      // Wake up backend first (especially important for Render.com free tier)
+      try {
+        await authApi.wakeUpServer();
+      } catch (wakeUpError) {
+        console.log('⏰ Backend wake-up completed, proceeding with login...');
+      }
+      
       const result = await authApi.login(email, password);
       return result;
     } catch (error) {
       // Handle timeout errors
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        return rejectWithValue('Connection timeout. Please check your internet connection and try again.');
+        return rejectWithValue('Connection timeout. The server may be starting up. Please wait a moment and try again.');
       }
       
       // Handle authentication errors
@@ -31,9 +38,9 @@ export const loginUser = createAsyncThunk(
         return rejectWithValue('Server temporarily unavailable. Please try again in a moment.');
       }
       
-      // Handle network errors
-      if (!error.response) {
-        return rejectWithValue('Unable to connect to server. Please check your internet connection.');
+      // Handle network errors or backend unavailable
+      if (!error.response || error.code === 'BACKEND_UNAVAILABLE') {
+        return rejectWithValue('Unable to connect to server. The backend may be starting up. Please wait a moment and try again.');
       }
       
       return rejectWithValue('Login failed. Please try again.');
@@ -45,12 +52,19 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async ({ email, password, name }, { rejectWithValue }) => {
     try {
+      // Wake up backend first (especially important for Render.com free tier)
+      try {
+        await authApi.wakeUpServer();
+      } catch (wakeUpError) {
+        console.log('⏰ Backend wake-up completed, proceeding with registration...');
+      }
+      
       const result = await authApi.register(email, password, name);
       return result;
     } catch (error) {
       // Handle timeout errors
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        return rejectWithValue('Connection timeout. Please check your internet connection and try again.');
+        return rejectWithValue('Connection timeout. The server may be starting up. Please wait a moment and try again.');
       }
       
       // Handle validation errors
@@ -69,9 +83,9 @@ export const registerUser = createAsyncThunk(
         return rejectWithValue('Server temporarily unavailable. Please try again in a moment.');
       }
       
-      // Handle network errors
-      if (!error.response) {
-        return rejectWithValue('Unable to connect to server. Please check your internet connection.');
+      // Handle network errors or backend unavailable
+      if (!error.response || error.code === 'BACKEND_UNAVAILABLE') {
+        return rejectWithValue('Unable to connect to server. The backend may be starting up. Please wait a moment and try again.');
       }
       
       return rejectWithValue('Registration failed. Please try again.');

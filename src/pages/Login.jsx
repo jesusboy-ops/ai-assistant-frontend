@@ -227,6 +227,20 @@ const Login = () => {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
+
+            {loading && (
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.7)', 
+                  textAlign: 'center', 
+                  mb: 2,
+                  fontSize: '0.9rem'
+                }}
+              >
+                If this is taking a while, the server may be starting up. Please wait...
+              </Typography>
+            )}
           </Box>
 
           {/* Sign up link */}
