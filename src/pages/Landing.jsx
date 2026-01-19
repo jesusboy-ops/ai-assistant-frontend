@@ -264,7 +264,7 @@ const Landing = () => {
           textAlign: 'center'
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Typography
             variant="overline"
             sx={{
@@ -403,7 +403,7 @@ const Landing = () => {
 
       {/* Features Section - 2 Column, 3 Row Grid */}
       <Box sx={{ paddingY: 12 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Box sx={{ textAlign: 'center', marginBottom: 10 }}>
             <Typography
               variant="overline"
@@ -598,7 +598,7 @@ const Landing = () => {
 
       {/* App Preview Section with Real Phone Image */}
       <Box sx={{ paddingY: 12, background: alpha('#1a1a2e', 0.3) }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Grid 
             container 
             spacing={6} 
@@ -802,7 +802,7 @@ const Landing = () => {
 
       {/* Interactive Demo Section */}
       <Box sx={{ paddingY: 12, background: alpha('#0A0A0F', 0.6) }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Box sx={{ textAlign: 'center', marginBottom: 10 }}>
             <Typography
               variant="overline"
@@ -893,7 +893,7 @@ const Landing = () => {
 
       {/* Why Choose Spark - Explanatory Section */}
       <Box sx={{ paddingY: 12 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Grid container spacing={6} alignItems="center">
             {/* Left Side - Content */}
             <Grid item xs={12} lg={7}>
@@ -1035,28 +1035,30 @@ const Landing = () => {
       </Box>
 
       {/* Final CTA Section */}
-      <Box sx={{ paddingY: 12 }}>
+      <Box sx={{ paddingY: { xs: 8, md: 12 } }}>
         <Container maxWidth="md">
           <Box
             sx={{
               textAlign: 'center',
-              padding: 10,
-              borderRadius: 5,
+              padding: { xs: 4, sm: 6, md: 8, lg: 10 },
+              borderRadius: { xs: 3, md: 5 },
               background: alpha('#667eea', 0.12),
-              border: `1px solid ${alpha('#667eea', 0.35)}`
+              border: `1px solid ${alpha('#667eea', 0.35)}`,
+              margin: { xs: 2, sm: 0 }
               }}
           >
             <Typography 
               variant="h2" 
               sx={{ 
                 fontWeight: 800, 
-                marginBottom: 4,
-                fontSize: { xs: '2.8rem', md: '3.5rem' },
+                marginBottom: { xs: 3, md: 4 },
+                fontSize: { xs: '2rem', sm: '2.5rem', md: '3.5rem' },
                 background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                letterSpacing: '-0.01em'
+                letterSpacing: '-0.01em',
+                lineHeight: { xs: 1.2, md: 1.1 }
               }}
             >
               Ready to Get Started?
@@ -1064,10 +1066,11 @@ const Landing = () => {
             <Typography 
               variant="h6" 
               sx={{ 
-                marginBottom: 6, 
+                marginBottom: { xs: 4, md: 6 }, 
                 color: alpha('#ffffff', 0.85),
-                lineHeight: 1.7,
-                fontSize: '1.2rem'
+                lineHeight: 1.6,
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                paddingX: { xs: 1, sm: 2 }
               }}
             >
               Join thousands of professionals already using Spark AI completely free
@@ -1077,12 +1080,13 @@ const Landing = () => {
               size="large"
               onClick={() => navigate('/signup')}
               sx={{
-                paddingX: 7,
-                paddingY: 3,
-                fontSize: '1.3rem',
+                paddingX: { xs: 4, sm: 5, md: 7 },
+                paddingY: { xs: 2, sm: 2.5, md: 3 },
+                fontSize: { xs: '1.1rem', sm: '1.2rem', md: '1.3rem' },
                 fontWeight: 700,
-                borderRadius: 4,
+                borderRadius: { xs: 3, md: 4 },
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                minWidth: { xs: '200px', sm: 'auto' },
                 '&:hover': {
                   background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
                   transform: 'translateY(-2px)'
@@ -1095,9 +1099,11 @@ const Landing = () => {
             <Typography 
               variant="body1" 
               sx={{ 
-                marginTop: 4,
+                marginTop: { xs: 3, md: 4 },
                 color: alpha('#ffffff', 0.65),
-                fontSize: '1rem'
+                fontSize: { xs: '0.875rem', sm: '0.95rem', md: '1rem' },
+                lineHeight: 1.5,
+                paddingX: { xs: 1, sm: 0 }
               }}
             >
               No credit card required • 100% Free Forever • No hidden fees
@@ -1114,7 +1120,7 @@ const Landing = () => {
           background: alpha('#0A0A0F', 0.8)
         }}
       >
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

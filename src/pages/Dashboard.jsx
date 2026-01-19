@@ -197,7 +197,7 @@ const Dashboard = () => {
       }
     }}>
       <Box sx={{ 
-        maxWidth: { xs: '100%', sm: 600, md: 900, lg: 1200, xl: 1400 }, 
+        maxWidth: { xs: '100%', sm: '95%', md: '90%', lg: '85%', xl: '80%' }, 
         margin: '0 auto',
         padding: { xs: 1, sm: 2, md: 3, lg: 4 },
         position: 'relative',

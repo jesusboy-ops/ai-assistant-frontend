@@ -376,7 +376,7 @@ const Math = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <PageHeader
         title="Math Solver"
         subtitle="Quick calculations and problem solving with step-by-step solutions"

@@ -372,7 +372,7 @@ const Dictionary = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <PageHeader
         title="Dictionary"
         subtitle="Look up definitions, pronunciations, and examples for any English word"

@@ -76,7 +76,7 @@ const Settings = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <PageHeader
         title="Settings"
         subtitle="Manage your account and preferences"

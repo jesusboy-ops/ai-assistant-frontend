@@ -187,7 +187,7 @@ const Translator = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth="xl" sx={{ py: 3 }}>
       <PageHeader
         title="AI Translator"
         subtitle="Translate text between multiple languages using advanced AI technology"

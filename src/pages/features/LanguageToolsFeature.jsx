@@ -1,5 +1,4 @@
 // Language Tools Feature Page
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -20,16 +19,19 @@ import {
   AutoAwesome as SparkIcon,
   Translate as TranslateIcon,
   ArrowBack as BackIcon,
-  Language as LanguageIcon,
   VolumeUp as VolumeIcon,
   MenuBook as DictionaryIcon,
   Speed as SpeedIcon,
   Psychology as AIIcon,
   Public as GlobalIcon
 } from '@mui/icons-material';
+import useScrollToTop from '../../hooks/useScrollToTop';
 
 const LanguageToolsFeature = () => {
   const navigate = useNavigate();
+  
+  // Scroll to top when component mounts
+  useScrollToTop();
 
   const features = [
     {
@@ -134,129 +136,103 @@ const LanguageToolsFeature = () => {
       </AppBar>
 
       {/* Hero Section */}
-      <Box sx={{ paddingTop: { xs: 12, md: 16 }, paddingBottom: 8 }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Box>
-                <Chip
-                  label="LANGUAGE TOOLS"
-                  sx={{
-                    backgroundColor: alpha('#06B6D4', 0.2),
-                    color: '#06B6D4',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    marginBottom: 3,
-                    paddingX: 2,
-                    paddingY: 1
-                  }}
-                />
-                
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
-                    fontWeight: 900,
-                    lineHeight: 1.1,
-                    marginBottom: 3,
-                    background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}
-                >
-                  Break Language Barriers with AI
-                </Typography>
-                
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontSize: { xs: '1.1rem', md: '1.3rem' },
-                    color: alpha('#ffffff', 0.85),
-                    lineHeight: 1.6,
-                    marginBottom: 4,
-                    maxWidth: 500
-                  }}
-                >
-                  Translate, define, and understand languages instantly with AI-powered tools that make communication effortless.
-                </Typography>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate('/signup')}
-                    sx={{
-                      paddingX: 5,
-                      paddingY: 2,
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      borderRadius: 3,
-                      background: 'linear-gradient(135deg, #06B6D4 0%, #0891b2 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)',
-                        transform: 'translateY(-2px)'
-                      }
-                    }}
-                  >
-                    Try Language Tools
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={() => navigate('/login')}
-                    sx={{
-                      paddingX: 5,
-                      paddingY: 2,
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      borderColor: alpha('#06B6D4', 0.6),
-                      color: '#06B6D4',
-                      borderRadius: 3,
-                      '&:hover': {
-                        borderColor: '#06B6D4',
-                        backgroundColor: alpha('#06B6D4', 0.1)
-                      }
-                    }}
-                  >
-                    View Demo
-                  </Button>
-                </Stack>
-              </Box>
-            </Grid>
+      <Box sx={{ paddingTop: { xs: 12, md: 16 }, paddingBottom: 12 }}>
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: 'center', maxWidth: 1000, margin: '0 auto' }}>
+            <Chip
+              label="LANGUAGE TOOLS"
+              sx={{
+                backgroundColor: alpha('#06B6D4', 0.15),
+                color: '#06B6D4',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                marginBottom: 4,
+                paddingX: 3,
+                paddingY: 1,
+                border: `1px solid ${alpha('#06B6D4', 0.3)}`
+              }}
+            />
             
-            <Grid item xs={12} md={6}>
-              <Box
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: '2.8rem', md: '4rem', lg: '4.5rem' },
+                fontWeight: 900,
+                lineHeight: 1.1,
+                marginBottom: 4,
+                background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              Break Language Barriers with AI
+            </Typography>
+            
+            <Typography
+              variant="h5"
+              sx={{
+                fontSize: { xs: '1.2rem', md: '1.4rem' },
+                color: alpha('#ffffff', 0.85),
+                lineHeight: 1.6,
+                marginBottom: 6,
+                fontWeight: 400
+              }}
+            >
+              Translate, define, and understand languages instantly with AI-powered tools that make communication effortless.
+            </Typography>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} justifyContent="center">
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => navigate('/signup')}
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: { xs: 300, md: 400 }
+                  paddingX: 6,
+                  paddingY: 2.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #06B6D4 0%, #0891b2 100%)',
+                  boxShadow: '0 8px 32px rgba(6, 182, 212, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #0891b2 0%, #0e7490 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 40px rgba(6, 182, 212, 0.4)'
+                  }
                 }}
               >
-                <Box
-                  sx={{
-                    width: { xs: 280, md: 350 },
-                    height: { xs: 280, md: 350 },
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #06B6D4 0%, #0891b2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 20px 60px rgba(6, 182, 212, 0.3)',
-                    animation: 'float 3s ease-in-out infinite'
-                  }}
-                >
-                  <LanguageIcon sx={{ fontSize: { xs: 120, md: 150 }, color: 'white' }} />
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
+                Try Language Tools
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={() => navigate('/login')}
+                sx={{
+                  paddingX: 6,
+                  paddingY: 2.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderColor: alpha('#06B6D4', 0.6),
+                  color: '#06B6D4',
+                  borderWidth: 2,
+                  borderRadius: 3,
+                  '&:hover': {
+                    borderColor: '#06B6D4',
+                    backgroundColor: alpha('#06B6D4', 0.1),
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                View Demo
+              </Button>
+            </Stack>
+          </Box>
         </Container>
       </Box>
 
       {/* Features Grid */}
       <Box sx={{ paddingY: 12, background: alpha('#1a1a2e', 0.3) }}>
-        <Container maxWidth="lg">
+        <Container maxWidth="xl">
           <Box sx={{ textAlign: 'center', marginBottom: 8 }}>
             <Typography
               variant="h2"
@@ -290,39 +266,50 @@ const LanguageToolsFeature = () => {
                 <Card
                   sx={{
                     height: '100%',
-                    background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.9)} 0%, ${alpha('#16213e', 0.7)} 100%)`,
-                    border: `1px solid ${alpha('#06B6D4', 0.25)}`,
-                    borderRadius: 3,
-                    padding: 3,
+                    background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.6)} 0%, ${alpha('#16213e', 0.4)} 100%)`,
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha('#06B6D4', 0.2)}`,
+                    borderRadius: 4,
+                    padding: 4,
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'translateY(-8px)',
-                      border: `1px solid ${alpha('#06B6D4', 0.5)}`,
-                      boxShadow: '0 20px 40px rgba(6, 182, 212, 0.15)'
+                      border: `1px solid ${alpha('#06B6D4', 0.4)}`,
+                      boxShadow: '0 20px 40px rgba(6, 182, 212, 0.15)',
+                      background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.8)} 0%, ${alpha('#16213e', 0.6)} 100%)`
                     }
                   }}
                 >
-                  <CardContent sx={{ padding: 0 }}>
-                    <Box sx={{ marginBottom: 2 }}>
+                  <CardContent sx={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: 3,
+                      padding: 2,
+                      borderRadius: 2,
+                      background: alpha('#06B6D4', 0.1)
+                    }}>
                       {feature.icon}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          marginLeft: 2,
+                          color: 'white',
+                          fontSize: '1.2rem'
+                        }}
+                      >
+                        {feature.title}
+                      </Typography>
                     </Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 700,
-                        marginBottom: 1,
-                        color: 'white',
-                        fontSize: '1.2rem'
-                      }}
-                    >
-                      {feature.title}
-                    </Typography>
+                    
                     <Typography
                       variant="body1"
                       sx={{
                         color: alpha('#ffffff', 0.8),
-                        lineHeight: 1.6,
-                        fontSize: '0.95rem'
+                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        flex: 1
                       }}
                     >
                       {feature.description}
@@ -384,17 +371,6 @@ const LanguageToolsFeature = () => {
           </Box>
         </Container>
       </Box>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-20px);
-          }
-        }
-      `}</style>
     </Box>
   );
 };

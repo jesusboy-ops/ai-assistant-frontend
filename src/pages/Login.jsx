@@ -73,10 +73,12 @@ const Login = () => {
         padding: 2
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <Card
           sx={{
-            p: 4,
+            p: { xs: 4, sm: 5, md: 6 },
+            maxWidth: { xs: '100%', sm: 500, md: 600, lg: 700 },
+            margin: '0 auto',
             background: 'rgba(255, 255, 255, 0.05)',
             borderRadius: 3,
             border: '1px solid rgba(255, 255, 255, 0.1)',

@@ -1,5 +1,3 @@
-// AI Chat Assistant Feature Page
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,17 +14,11 @@ import {
   useTheme,
   useMediaQuery,
   Stack,
-  Chip,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText
+  Chip
 } from '@mui/material';
 import {
   AutoAwesome as SparkIcon,
-  Chat as ChatIcon,
   ArrowBack as BackIcon,
-  CheckCircle as CheckIcon,
   Psychology as BrainIcon,
   Speed as SpeedIcon,
   Security as SecurityIcon,
@@ -34,11 +26,15 @@ import {
   School as StudyIcon,
   Assignment as TaskIcon
 } from '@mui/icons-material';
+import useScrollToTop from '../../hooks/useScrollToTop';
 
 const AIChatFeature = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // Scroll to top when component mounts
+  useScrollToTop();
 
   const features = [
     {
@@ -168,130 +164,104 @@ const AIChatFeature = () => {
       </AppBar>
 
       {/* Hero Section */}
-      <Box sx={{ paddingTop: { xs: 12, md: 16 }, paddingBottom: 8 }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={6} alignItems="center">
-            <Grid item xs={12} md={6}>
-              <Box>
-                <Chip
-                  label="AI CHAT ASSISTANT"
-                  sx={{
-                    backgroundColor: alpha('#667eea', 0.2),
-                    color: '#667eea',
-                    fontWeight: 700,
-                    fontSize: '0.9rem',
-                    marginBottom: 3,
-                    paddingX: 2,
-                    paddingY: 1
-                  }}
-                />
-                
-                <Typography
-                  variant="h1"
-                  sx={{
-                    fontSize: { xs: '2.5rem', md: '3.5rem', lg: '4rem' },
-                    fontWeight: 900,
-                    lineHeight: 1.1,
-                    marginBottom: 3,
-                    background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                  }}
-                >
-                  Intelligent Conversations That Get Things Done
-                </Typography>
-                
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontSize: { xs: '1.1rem', md: '1.3rem' },
-                    color: alpha('#ffffff', 0.85),
-                    lineHeight: 1.6,
-                    marginBottom: 4,
-                    maxWidth: 500
-                  }}
-                >
-                  Experience AI that understands context, remembers your preferences, and helps you accomplish tasks through natural conversation.
-                </Typography>
-
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => navigate('/signup')}
-                    sx={{
-                      paddingX: 5,
-                      paddingY: 2,
-                      fontSize: '1.1rem',
-                      fontWeight: 700,
-                      borderRadius: 3,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      '&:hover': {
-                        background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
-                        transform: 'translateY(-2px)'
-                      }
-                    }}
-                  >
-                    Try AI Chat Now
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="large"
-                    onClick={() => navigate('/login')}
-                    sx={{
-                      paddingX: 5,
-                      paddingY: 2,
-                      fontSize: '1.1rem',
-                      fontWeight: 600,
-                      borderColor: alpha('#667eea', 0.6),
-                      color: '#667eea',
-                      borderRadius: 3,
-                      '&:hover': {
-                        borderColor: '#667eea',
-                        backgroundColor: alpha('#667eea', 0.1)
-                      }
-                    }}
-                  >
-                    Sign In
-                  </Button>
-                </Stack>
-              </Box>
-            </Grid>
+      <Box sx={{ paddingTop: { xs: 12, md: 16 }, paddingBottom: 12 }}>
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: 'center', maxWidth: 1000, margin: '0 auto' }}>
+            <Chip
+              label="AI CHAT ASSISTANT"
+              sx={{
+                backgroundColor: alpha('#667eea', 0.15),
+                color: '#667eea',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                marginBottom: 4,
+                paddingX: 3,
+                paddingY: 1,
+                border: `1px solid ${alpha('#667eea', 0.3)}`
+              }}
+            />
             
-            <Grid item xs={12} md={6}>
-              <Box
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: '2.8rem', md: '4rem', lg: '4.5rem' },
+                fontWeight: 900,
+                lineHeight: 1.1,
+                marginBottom: 4,
+                background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              Intelligent Conversations That Get Things Done
+            </Typography>
+            
+            <Typography
+              variant="h5"
+              sx={{
+                fontSize: { xs: '1.2rem', md: '1.4rem' },
+                color: alpha('#ffffff', 0.85),
+                lineHeight: 1.6,
+                marginBottom: 6,
+                fontWeight: 400
+              }}
+            >
+              Experience AI that understands context, remembers your preferences, and helps you accomplish tasks through natural conversation.
+            </Typography>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} justifyContent="center">
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => navigate('/signup')}
                 sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: { xs: 300, md: 400 }
+                  paddingX: 6,
+                  paddingY: 2.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                  borderRadius: 3,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 40px rgba(102, 126, 234, 0.4)'
+                  }
                 }}
               >
-                <Box
-                  sx={{
-                    width: { xs: 280, md: 350 },
-                    height: { xs: 280, md: 350 },
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 20px 60px rgba(102, 126, 234, 0.3)',
-                    animation: 'pulse 2s infinite'
-                  }}
-                >
-                  <ChatIcon sx={{ fontSize: { xs: 120, md: 150 }, color: 'white' }} />
-                </Box>
-              </Box>
-            </Grid>
-          </Grid>
+                Try AI Chat Now
+              </Button>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={() => navigate('/login')}
+                sx={{
+                  paddingX: 6,
+                  paddingY: 2.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 600,
+                  borderColor: alpha('#667eea', 0.6),
+                  color: '#667eea',
+                  borderWidth: 2,
+                  borderRadius: 3,
+                  '&:hover': {
+                    borderColor: '#667eea',
+                    backgroundColor: alpha('#667eea', 0.1),
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                Sign In
+              </Button>
+            </Stack>
+          </Box>
         </Container>
       </Box>
 
-      {/* Features Grid */}
+      {/* Features Section */}
       <Box sx={{ paddingY: 12, background: alpha('#1a1a2e', 0.3) }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', marginBottom: 8 }}>
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: 'center', marginBottom: 10 }}>
             <Typography
               variant="h2"
               sx={{
@@ -311,7 +281,8 @@ const AIChatFeature = () => {
                 color: alpha('#ffffff', 0.75),
                 maxWidth: 600,
                 margin: '0 auto',
-                fontSize: '1.2rem'
+                fontSize: '1.2rem',
+                lineHeight: 1.6
               }}
             >
               Discover what makes our AI chat assistant the perfect productivity companion
@@ -324,39 +295,50 @@ const AIChatFeature = () => {
                 <Card
                   sx={{
                     height: '100%',
-                    background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.9)} 0%, ${alpha('#16213e', 0.7)} 100%)`,
-                    border: `1px solid ${alpha('#667eea', 0.25)}`,
-                    borderRadius: 3,
-                    padding: 3,
+                    background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.6)} 0%, ${alpha('#16213e', 0.4)} 100%)`,
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha('#667eea', 0.2)}`,
+                    borderRadius: 4,
+                    padding: 4,
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       transform: 'translateY(-8px)',
-                      border: `1px solid ${alpha('#667eea', 0.5)}`,
-                      boxShadow: '0 20px 40px rgba(102, 126, 234, 0.15)'
+                      border: `1px solid ${alpha('#667eea', 0.4)}`,
+                      boxShadow: '0 20px 40px rgba(102, 126, 234, 0.15)',
+                      background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.8)} 0%, ${alpha('#16213e', 0.6)} 100%)`
                     }
                   }}
                 >
-                  <CardContent sx={{ padding: 0 }}>
-                    <Box sx={{ marginBottom: 2 }}>
+                  <CardContent sx={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      marginBottom: 3,
+                      padding: 2,
+                      borderRadius: 2,
+                      background: alpha('#667eea', 0.1)
+                    }}>
                       {feature.icon}
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: 700,
+                          marginLeft: 2,
+                          color: 'white',
+                          fontSize: '1.2rem'
+                        }}
+                      >
+                        {feature.title}
+                      </Typography>
                     </Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        fontWeight: 700,
-                        marginBottom: 1,
-                        color: 'white',
-                        fontSize: '1.2rem'
-                      }}
-                    >
-                      {feature.title}
-                    </Typography>
+                    
                     <Typography
                       variant="body1"
                       sx={{
                         color: alpha('#ffffff', 0.8),
-                        lineHeight: 1.6,
-                        fontSize: '0.95rem'
+                        lineHeight: 1.7,
+                        fontSize: '1rem',
+                        flex: 1
                       }}
                     >
                       {feature.description}
@@ -371,8 +353,8 @@ const AIChatFeature = () => {
 
       {/* Use Cases Section */}
       <Box sx={{ paddingY: 12 }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', marginBottom: 8 }}>
+        <Container maxWidth="xl">
+          <Box sx={{ textAlign: 'center', marginBottom: 10 }}>
             <Typography
               variant="h2"
               sx={{
@@ -392,7 +374,8 @@ const AIChatFeature = () => {
                 color: alpha('#ffffff', 0.75),
                 maxWidth: 600,
                 margin: '0 auto',
-                fontSize: '1.2rem'
+                fontSize: '1.2rem',
+                lineHeight: 1.6
               }}
             >
               See how our AI chat assistant can help you in different scenarios
@@ -405,26 +388,28 @@ const AIChatFeature = () => {
                 <Card
                   sx={{
                     height: '100%',
-                    background: alpha('#667eea', 0.1),
-                    border: `1px solid ${alpha('#667eea', 0.3)}`,
-                    borderRadius: 3,
-                    padding: 4,
+                    background: `linear-gradient(145deg, ${alpha('#667eea', 0.08)} 0%, ${alpha('#764ba2', 0.05)} 100%)`,
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha('#667eea', 0.2)}`,
+                    borderRadius: 4,
+                    padding: 5,
                     transition: 'all 0.3s ease',
                     '&:hover': {
-                      background: alpha('#667eea', 0.15),
-                      border: `1px solid ${alpha('#667eea', 0.5)}`,
-                      transform: 'translateY(-4px)'
+                      background: `linear-gradient(145deg, ${alpha('#667eea', 0.12)} 0%, ${alpha('#764ba2', 0.08)} 100%)`,
+                      border: `1px solid ${alpha('#667eea', 0.4)}`,
+                      transform: 'translateY(-6px)',
+                      boxShadow: '0 16px 32px rgba(102, 126, 234, 0.2)'
                     }
                   }}
                 >
-                  <CardContent sx={{ padding: 0 }}>
+                  <CardContent sx={{ padding: 0, height: '100%', display: 'flex', flexDirection: 'column' }}>
                     <Typography
                       variant="h5"
                       sx={{
                         fontWeight: 700,
-                        marginBottom: 2,
+                        marginBottom: 3,
                         color: 'white',
-                        fontSize: '1.3rem'
+                        fontSize: '1.4rem'
                       }}
                     >
                       {useCase.title}
@@ -432,20 +417,29 @@ const AIChatFeature = () => {
                     <Typography
                       variant="body1"
                       sx={{
-                        color: alpha('#ffffff', 0.8),
-                        lineHeight: 1.6,
-                        marginBottom: 3,
-                        fontSize: '1rem'
+                        color: alpha('#ffffff', 0.85),
+                        lineHeight: 1.7,
+                        marginBottom: 4,
+                        fontSize: '1.05rem',
+                        flex: 1
                       }}
                     >
                       {useCase.description}
                     </Typography>
                     <Box
                       sx={{
-                        padding: 2,
-                        background: alpha('#0A0A0F', 0.4),
-                        borderRadius: 2,
-                        border: `1px solid ${alpha('#667eea', 0.2)}`
+                        padding: 3,
+                        background: alpha('#0A0A0F', 0.6),
+                        borderRadius: 3,
+                        border: `1px solid ${alpha('#667eea', 0.3)}`,
+                        position: 'relative',
+                        '&::before': {
+                          content: '"💬"',
+                          position: 'absolute',
+                          top: -10,
+                          left: 20,
+                          fontSize: '1.2rem'
+                        }
                       }}
                     >
                       <Typography
@@ -453,7 +447,8 @@ const AIChatFeature = () => {
                         sx={{
                           color: '#667eea',
                           fontStyle: 'italic',
-                          fontSize: '0.9rem'
+                          fontSize: '0.95rem',
+                          lineHeight: 1.5
                         }}
                       >
                         {useCase.example}
@@ -468,13 +463,26 @@ const AIChatFeature = () => {
       </Box>
 
       {/* CTA Section */}
-      <Box sx={{ paddingY: 12, background: alpha('#667eea', 0.1) }}>
-        <Container maxWidth="md">
+      <Box sx={{ 
+        paddingY: 12, 
+        background: `linear-gradient(135deg, ${alpha('#667eea', 0.1)} 0%, ${alpha('#764ba2', 0.05)} 100%)`,
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 50% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 70%)'
+        }
+      }}>
+        <Container maxWidth="md" sx={{ position: 'relative', zIndex: 1 }}>
           <Box sx={{ textAlign: 'center' }}>
             <Typography
               variant="h2"
               sx={{
-                fontSize: { xs: '2.5rem', md: '3rem' },
+                fontSize: { xs: '2.5rem', md: '3.2rem' },
                 fontWeight: 800,
                 marginBottom: 3,
                 background: 'linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%)',
@@ -488,8 +496,11 @@ const AIChatFeature = () => {
               variant="h6"
               sx={{
                 color: alpha('#ffffff', 0.85),
-                marginBottom: 4,
-                fontSize: '1.2rem'
+                marginBottom: 5,
+                fontSize: '1.3rem',
+                lineHeight: 1.6,
+                maxWidth: 500,
+                margin: '0 auto 2rem'
               }}
             >
               Start having intelligent conversations that boost your productivity
@@ -499,40 +510,35 @@ const AIChatFeature = () => {
               size="large"
               onClick={() => navigate('/signup')}
               sx={{
-                paddingX: 6,
-                paddingY: 2.5,
+                paddingX: 8,
+                paddingY: 3,
                 fontSize: '1.2rem',
                 fontWeight: 700,
                 borderRadius: 4,
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                boxShadow: '0 12px 40px rgba(102, 126, 234, 0.4)',
                 '&:hover': {
                   background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)',
-                  transform: 'translateY(-2px)'
+                  transform: 'translateY(-3px)',
+                  boxShadow: '0 16px 50px rgba(102, 126, 234, 0.5)'
                 }
               }}
             >
               Get Started Free
             </Button>
+            <Typography
+              variant="body2"
+              sx={{
+                marginTop: 3,
+                color: alpha('#ffffff', 0.6),
+                fontSize: '0.95rem'
+              }}
+            >
+              No credit card required • Start chatting in seconds
+            </Typography>
           </Box>
         </Container>
       </Box>
-
-      <style jsx>{`
-        @keyframes pulse {
-          0% {
-            transform: scale(1);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-          }
-          50% {
-            transform: scale(1.05);
-            box-shadow: 0 25px 80px rgba(102, 126, 234, 0.4);
-          }
-          100% {
-            transform: scale(1);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-          }
-        }
-      `}</style>
     </Box>
   );
 };
