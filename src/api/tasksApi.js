@@ -112,5 +112,3 @@ export const tasksApi = {
 };
 
 export default tasksApi;
-
-export default tasksApi;
