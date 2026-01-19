@@ -298,7 +298,7 @@ When asked about who created you or who made you, always mention that you were c
       
       // Handle API errors
       if (error.response?.status === 401) {
-        throw new Error('AI API authentication failed. Please check your API key.');
+        throw new Error('AI API authentication failed. Your API key may have been disabled for security reasons. Please generate a new key at https://openrouter.ai/keys');
       } else if (error.response?.status === 429) {
         throw new Error('AI API rate limit exceeded. Please try again later.');
       } else if (error.response?.status >= 500) {
