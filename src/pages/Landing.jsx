@@ -459,7 +459,7 @@ const Landing = () => {
               xs: 'repeat(6, auto)', 
               sm: 'repeat(3, auto)' 
             },
-            gap: 4,
+            gap: { xs: 3, sm: 4 },
             maxWidth: '1000px',
             margin: '0 auto',
             width: '100%'
@@ -469,23 +469,35 @@ const Landing = () => {
                 key={index}
                 sx={{
                   height: '100%',
-                  minHeight: { xs: '280px', sm: '320px', md: '360px' },
+                  minHeight: { xs: '240px', sm: '280px', md: '320px' },
                   display: 'flex'
                 }}
               >
                 <Card
+                  onClick={() => {
+                    // Navigate to feature-specific pages
+                    const featureRoutes = {
+                      'AI Chat Assistant': '/features/ai-chat',
+                      'Smart Task Management': '/features/task-management',
+                      'Language Tools': '/features/language-tools',
+                      'Document Analysis': '/features/document-analysis',
+                      'Problem Solver': '/features/problem-solver',
+                      'Email Generator': '/features/email-generator'
+                    };
+                    navigate(featureRoutes[feature.title] || '/signup');
+                  }}
                   sx={{
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
                     background: `linear-gradient(145deg, ${alpha('#1a1a2e', 0.9)} 0%, ${alpha('#16213e', 0.7)} 100%)`,
                     border: `1px solid ${alpha('#667eea', 0.25)}`,
-                    borderRadius: 4,
-                    padding: { xs: 3, sm: 4 },
+                    borderRadius: { xs: 3, sm: 4 },
+                    padding: { xs: 2.5, sm: 3, md: 4 },
                     cursor: 'pointer',
                     transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
                     '&:hover': {
-                      transform: 'translateY(-12px)',
+                      transform: 'translateY(-8px)',
                       border: `1px solid ${alpha('#667eea', 0.5)}`,
                       boxShadow: '0 20px 40px rgba(102, 126, 234, 0.15)',
                       '& .feature-icon': {
@@ -502,21 +514,21 @@ const Landing = () => {
                       display: 'flex', 
                       flexDirection: 'column',
                       alignItems: 'center',
-                      justifyContent: 'center',
+                      justifyContent: 'flex-start',
                       textAlign: 'center',
-                      gap: 2
+                      gap: { xs: 1.5, sm: 2 }
                     }}
                   >
                     <Box 
                       className="feature-icon"
                       sx={{ 
-                        marginBottom: 2,
+                        marginBottom: { xs: 1, sm: 2 },
                         transition: 'all 0.3s ease',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: 70,
-                        height: 70,
+                        width: { xs: 60, sm: 70 },
+                        height: { xs: 60, sm: 70 },
                         borderRadius: '50%',
                         background: alpha('#667eea', 0.1),
                         border: `1px solid ${alpha('#667eea', 0.2)}`
@@ -529,10 +541,11 @@ const Landing = () => {
                       variant="h6" 
                       sx={{ 
                         fontWeight: 700, 
-                        marginBottom: 1, 
+                        marginBottom: { xs: 0.5, sm: 1 }, 
                         color: 'white',
-                        fontSize: { xs: '1.1rem', sm: '1.3rem', md: '1.4rem' },
-                        lineHeight: 1.3
+                        fontSize: { xs: '1rem', sm: '1.2rem', md: '1.3rem' },
+                        lineHeight: 1.2,
+                        textAlign: 'center'
                       }}
                     >
                       {feature.title}
@@ -542,11 +555,13 @@ const Landing = () => {
                       variant="body1" 
                       sx={{ 
                         color: alpha('#ffffff', 0.8), 
-                        lineHeight: 1.6,
-                        fontSize: { xs: '0.9rem', sm: '1rem', md: '1.05rem' },
+                        lineHeight: 1.5,
+                        fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
                         flex: 1,
                         display: 'flex',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        marginBottom: { xs: 1, sm: 2 }
                       }}
                     >
                       {feature.description}
@@ -557,12 +572,20 @@ const Landing = () => {
                       alignItems: 'center', 
                       justifyContent: 'center',
                       gap: 1,
-                      marginTop: 2,
                       color: '#667eea',
-                      fontSize: '0.9rem',
-                      fontWeight: 600
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      fontWeight: 600,
+                      padding: { xs: '6px 12px', sm: '8px 16px' },
+                      borderRadius: 2,
+                      background: alpha('#667eea', 0.1),
+                      border: `1px solid ${alpha('#667eea', 0.2)}`,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: alpha('#667eea', 0.2),
+                        border: `1px solid ${alpha('#667eea', 0.4)}`
+                      }
                     }}>
-                      <ArrowIcon sx={{ fontSize: 16 }} />
+                      <ArrowIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />
                       <span>Learn more</span>
                     </Box>
                   </CardContent>

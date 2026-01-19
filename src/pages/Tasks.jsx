@@ -54,7 +54,17 @@ const Tasks = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchTasks());
+    const loadTasks = async () => {
+      try {
+        await dispatch(fetchTasks()).unwrap();
+      } catch (error) {
+        console.error('Failed to load tasks:', error);
+        // Don't show error for initial load, just log it
+        // The error will be handled by the Redux slice
+      }
+    };
+    
+    loadTasks();
   }, [dispatch]);
 
   const filteredTasks = Array.isArray(tasks) ? tasks.filter(task => {

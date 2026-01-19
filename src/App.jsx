@@ -41,6 +41,14 @@ import Math from './pages/Math';
 import SharedNote from './pages/SharedNote';
 import BackendDebug from './pages/BackendDebug';
 
+// Feature Pages
+import AIChatFeature from './pages/features/AIChatFeature';
+import TaskManagementFeature from './pages/features/TaskManagementFeature';
+import LanguageToolsFeature from './pages/features/LanguageToolsFeature';
+import DocumentAnalysisFeature from './pages/features/DocumentAnalysisFeature';
+import ProblemSolverFeature from './pages/features/ProblemSolverFeature';
+import EmailGeneratorFeature from './pages/features/EmailGeneratorFeature';
+
 // Protected Route Component
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -73,6 +81,14 @@ function App() {
             
             {/* Shared Content Routes - Public */}
             <Route path="/shared/notes/:noteId" element={<SharedNote />} />
+            
+            {/* Feature Pages - Public */}
+            <Route path="/features/ai-chat" element={<AIChatFeature />} />
+            <Route path="/features/task-management" element={<TaskManagementFeature />} />
+            <Route path="/features/language-tools" element={<LanguageToolsFeature />} />
+            <Route path="/features/document-analysis" element={<DocumentAnalysisFeature />} />
+            <Route path="/features/problem-solver" element={<ProblemSolverFeature />} />
+            <Route path="/features/email-generator" element={<EmailGeneratorFeature />} />
             
             {/* Other Auth Routes - Use AuthLayout */}
             <Route element={<AuthLayout />}>
