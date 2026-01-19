@@ -36,11 +36,12 @@ const rootReducer = combineReducers({
   study: studyReducer
 });
 
-// Persist configuration
+// Persist configuration - only persist essential data for performance
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'tasks', 'reminders', 'notes', 'calendar', 'study'] // Only persist these slices
+  whitelist: ['auth', 'study'], // Only persist auth and study mode settings
+  blacklist: ['chat', 'email', 'notes', 'calendar', 'files', 'notifications', 'dictionary', 'tasks', 'translator', 'reminders', 'math'] // Don't persist large data sets
 };
 
 // Create persisted reducer

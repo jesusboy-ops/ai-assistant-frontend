@@ -4,19 +4,11 @@ import axios from 'axios';
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const OPENAI_MODEL = import.meta.env.VITE_OPENAI_MODEL || 'gpt-3.5-turbo';
 
-// Debug logging for API key
-console.log('🔑 API Key Status:', {
-  exists: !!OPENAI_API_KEY,
-  length: OPENAI_API_KEY?.length,
-  startsWithSk: OPENAI_API_KEY?.startsWith('sk-'),
-  isPlaceholder: OPENAI_API_KEY === 'your_openrouter_api_key_here'
-});
-
-// Check if API key is properly configured
+// Check if API key is properly configured (no logging for security)
 const isApiKeyConfigured = () => {
-  const isConfigured = OPENAI_API_KEY && OPENAI_API_KEY !== 'your_openrouter_api_key_here' && OPENAI_API_KEY.length > 10;
-  console.log('🔑 isApiKeyConfigured:', isConfigured);
-  return isConfigured;
+  return OPENAI_API_KEY && 
+         OPENAI_API_KEY !== 'your_openrouter_api_key_here' && 
+         OPENAI_API_KEY.length > 10;
 };
 
 // OpenAI/OpenRouter API client
@@ -33,42 +25,45 @@ const openaiClient = axios.create({
   // No timeout - let AI requests complete naturally
 });
 
-// Add request interceptor for debugging
+// Add request interceptor (only log in development)
 openaiClient.interceptors.request.use(
   (config) => {
-    console.log('🔄 AI API Request:', {
-      url: config.baseURL + config.url,
-      method: config.method,
-      headers: {
-        ...config.headers,
-        Authorization: config.headers.Authorization ? '[REDACTED]' : 'Missing'
-      }
-    });
+    if (import.meta.env.DEV) {
+      console.log('🔄 AI API Request:', {
+        url: config.baseURL + config.url,
+        method: config.method
+      });
+    }
     return config;
   },
   (error) => {
-    console.error('🔄 AI API Request Error:', error);
+    if (import.meta.env.DEV) {
+      console.error('🔄 AI API Request Error:', error);
+    }
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for debugging
+// Add response interceptor (only log in development)
 openaiClient.interceptors.response.use(
   (response) => {
-    console.log('✅ AI API Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      hasData: !!response.data
-    });
+    if (import.meta.env.DEV) {
+      console.log('✅ AI API Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        hasData: !!response.data
+      });
+    }
     return response;
   },
   (error) => {
-    console.error('❌ AI API Response Error:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      message: error.message,
-      data: error.response?.data
-    });
+    if (import.meta.env.DEV) {
+      console.error('❌ AI API Response Error:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message
+      });
+    }
     return Promise.reject(error);
   }
 );

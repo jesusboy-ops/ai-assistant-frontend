@@ -1,5 +1,6 @@
 // Custom hook for chat functionality
 import { useDispatch, useSelector } from 'react-redux';
+import { useRef } from 'react';
 import {
   setConversations,
   setActiveConversation,
@@ -194,6 +195,9 @@ export const useChat = () => {
     (state) => state.chat
   );
   const { isStudyMode, currentTopic } = useSelector((state) => state.study);
+  
+  // Request deduplication
+  const pendingRequests = useRef(new Set());
 
   // Load all conversations
   const loadConversations = async () => {
@@ -256,9 +260,16 @@ export const useChat = () => {
     }
   };
 
-  // Send message
+  // Send message with deduplication
   const sendMessage = async (message) => {
-    console.log('💬 sendMessage called with:', message);
+    // Prevent duplicate requests
+    const requestKey = `${activeConversation?.id || 'default'}-${message}`;
+    if (pendingRequests.current.has(requestKey)) {
+      console.log('💬 Duplicate request prevented:', message);
+      return;
+    }
+    
+    pendingRequests.current.add(requestKey);
     
     try {
       dispatch(setSending(true));
@@ -270,16 +281,11 @@ export const useChat = () => {
         content: message,
         timestamp: new Date().toISOString()
       };
-      console.log('💬 Adding user message:', userMessage);
       dispatch(addMessage(userMessage));
 
       // Try real AI API
-      console.log('💬 Attempting real AI API call for:', message);
-      
-      // Get conversation history for context
       const conversationHistory = messages.slice(-5); // Last 5 messages for context
       const aiResponse = await aiApi.generateChatResponse(message, conversationHistory);
-      console.log('💬 Real AI response received:', aiResponse);
       
       // Add AI response after a short delay to simulate processing
       setTimeout(() => {
@@ -289,13 +295,12 @@ export const useChat = () => {
           content: aiResponse,
           timestamp: new Date().toISOString()
         };
-        console.log('💬 Adding AI message:', aiMessage);
         dispatch(addMessage(aiMessage));
         
-        // Create real notification for AI response
+        // Create notification for AI response
         const conversationTitle = activeConversation?.title || 'Chat';
         notificationService.aiResponseReceived(conversationTitle, aiResponse);
-      }, 1000); // Reduced delay for better UX
+      }, 800); // Reduced delay for better UX
       
     } catch (err) {
       console.error('💬 Error in sendMessage:', err);
@@ -306,6 +311,8 @@ export const useChat = () => {
       dispatch(setError(errorMessage));
     } finally {
       dispatch(setSending(false));
+      // Remove from pending requests
+      pendingRequests.current.delete(requestKey);
     }
   };
 

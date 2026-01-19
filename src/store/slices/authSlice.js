@@ -2,34 +2,41 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authApi from '../../api/authApi';
 
-// Async thunks with timeout handling
+// Async thunks with proper timeout and error handling
 export const loginUser = createAsyncThunk(
   'auth/loginUser',
   async ({ email, password }, { rejectWithValue }) => {
     try {
-      console.log('🔄 Starting login process...');
-      
-      // Direct login without timeout
       const result = await authApi.login(email, password);
-      
-      console.log('✅ Login successful');
       return result;
     } catch (error) {
-      console.error('❌ Login failed:', error);
-      
+      // Handle timeout errors
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        return rejectWithValue('Connection timed out. Please check your internet connection.');
+        return rejectWithValue('Connection timeout. Please check your internet connection and try again.');
       }
       
+      // Handle authentication errors
       if (error.response?.status === 401) {
-        return rejectWithValue('Invalid email or password.');
+        return rejectWithValue('Invalid email or password. Please check your credentials.');
       }
       
+      // Handle validation errors
       if (error.response?.status === 400) {
-        return rejectWithValue(error.userMessage || error.response?.data?.message || 'Invalid login credentials.');
+        const message = error.response?.data?.message || 'Please check your login information.';
+        return rejectWithValue(message);
       }
       
-      return rejectWithValue(error.message || 'Login failed. Please try again.');
+      // Handle server errors
+      if (error.response?.status >= 500) {
+        return rejectWithValue('Server temporarily unavailable. Please try again in a moment.');
+      }
+      
+      // Handle network errors
+      if (!error.response) {
+        return rejectWithValue('Unable to connect to server. Please check your internet connection.');
+      }
+      
+      return rejectWithValue('Login failed. Please try again.');
     }
   }
 );
@@ -38,29 +45,36 @@ export const registerUser = createAsyncThunk(
   'auth/registerUser',
   async ({ email, password, name }, { rejectWithValue }) => {
     try {
-      console.log('🔄 Starting registration process...');
-      
-      // Direct registration without timeout
       const result = await authApi.register(email, password, name);
-      
-      console.log('✅ Registration successful');
       return result;
     } catch (error) {
-      console.error('❌ Registration failed:', error);
-      
+      // Handle timeout errors
       if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
-        return rejectWithValue('Connection timed out. Please check your internet connection.');
+        return rejectWithValue('Connection timeout. Please check your internet connection and try again.');
       }
       
+      // Handle validation errors
       if (error.response?.status === 400) {
-        return rejectWithValue(error.userMessage || error.response?.data?.message || 'Registration failed. Please check your information.');
+        const message = error.response?.data?.message || 'Please check your registration information.';
+        return rejectWithValue(message);
       }
       
+      // Handle duplicate account
       if (error.response?.status === 409) {
-        return rejectWithValue('An account with this email already exists.');
+        return rejectWithValue('An account with this email already exists. Please use a different email or try logging in.');
       }
       
-      return rejectWithValue(error.message || 'Registration failed. Please try again.');
+      // Handle server errors
+      if (error.response?.status >= 500) {
+        return rejectWithValue('Server temporarily unavailable. Please try again in a moment.');
+      }
+      
+      // Handle network errors
+      if (!error.response) {
+        return rejectWithValue('Unable to connect to server. Please check your internet connection.');
+      }
+      
+      return rejectWithValue('Registration failed. Please try again.');
     }
   }
 );

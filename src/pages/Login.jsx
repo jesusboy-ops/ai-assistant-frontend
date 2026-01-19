@@ -1,7 +1,7 @@
 // Simple Login page
 import { useState, useEffect } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
   Card,
@@ -11,7 +11,8 @@ import {
   Link,
   InputAdornment,
   IconButton,
-  Container
+  Container,
+  Alert
 } from '@mui/material';
 import {
   Visibility,
@@ -25,6 +26,7 @@ import { validateEmail, validateRequired } from '../utils/validators';
 const Login = () => {
   const dispatch = useDispatch();
   const { login, loading } = useAuth();
+  const { error } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -105,6 +107,22 @@ const Login = () => {
 
           {/* Login Form */}
           <Box component="form" onSubmit={handleSubmit}>
+            {/* Error Alert */}
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 2,
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  color: '#ff6b6b',
+                  border: '1px solid rgba(244, 67, 54, 0.3)',
+                  '& .MuiAlert-icon': { color: '#ff6b6b' }
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
             <TextField
               fullWidth
               label="Email"

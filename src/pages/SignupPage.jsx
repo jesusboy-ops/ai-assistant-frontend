@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
   Box,
   Card,
@@ -9,7 +10,8 @@ import {
   Link,
   InputAdornment,
   IconButton,
-  Container
+  Container,
+  Alert
 } from '@mui/material';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
@@ -22,6 +24,7 @@ import { validateEmail, validatePassword, validateConfirmPassword, validateName 
 
 const SignupPage = () => {
   const { register, loading } = useAuth();
+  const { error } = useSelector((state) => state.auth);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -109,6 +112,22 @@ const SignupPage = () => {
 
           {/* Signup Form */}
           <Box component="form" onSubmit={handleSubmit}>
+            {/* Error Alert */}
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 2,
+                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                  color: '#ff6b6b',
+                  border: '1px solid rgba(244, 67, 54, 0.3)',
+                  '& .MuiAlert-icon': { color: '#ff6b6b' }
+                }}
+              >
+                {error}
+              </Alert>
+            )}
+
             <TextField
               fullWidth
               label="Full Name"

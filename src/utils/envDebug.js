@@ -1,9 +1,11 @@
-// Environment variable debugging utility
-// This helps diagnose environment variable issues in production
-
+// Environment variable debugging utility (disabled in production)
 export const debugEnvironment = () => {
+  // Only debug in development mode
+  if (import.meta.env.PROD) {
+    return;
+  }
+
   const envVars = {
-    VITE_OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
     VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
     VITE_GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID,
     VITE_OPENAI_MODEL: import.meta.env.VITE_OPENAI_MODEL,
@@ -12,7 +14,7 @@ export const debugEnvironment = () => {
     PROD: import.meta.env.PROD,
   };
 
-  console.group('🔍 Environment Debug Info');
+  console.group('🔍 Environment Debug Info (Development Only)');
   console.log('Mode:', import.meta.env.MODE);
   console.log('Is Development:', import.meta.env.DEV);
   console.log('Is Production:', import.meta.env.PROD);
@@ -20,30 +22,19 @@ export const debugEnvironment = () => {
   
   console.group('📋 Environment Variables');
   Object.entries(envVars).forEach(([key, value]) => {
-    if (key.includes('KEY') || key.includes('SECRET')) {
-      // Mask sensitive values
-      if (value) {
-        console.log(`${key}:`, value.substring(0, 10) + '...' + value.substring(value.length - 4));
-      } else {
-        console.log(`${key}:`, '❌ NOT SET');
-      }
-    } else {
-      console.log(`${key}:`, value || '❌ NOT SET');
-    }
+    console.log(`${key}:`, value || '❌ NOT SET');
   });
   console.groupEnd();
 
-  // Check API key specifically
+  // Check API key without exposing it
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
   console.group('🔑 API Key Analysis');
-  console.log('Exists:', !!apiKey);
-  console.log('Length:', apiKey?.length || 0);
+  console.log('Configured:', !!apiKey && apiKey !== 'your_openrouter_api_key_here');
   console.log('Starts with sk-:', apiKey?.startsWith('sk-') || false);
   console.log('Starts with sk-or-:', apiKey?.startsWith('sk-or-') || false);
   console.log('Is placeholder:', apiKey === 'your_openrouter_api_key_here');
   console.log('Is configured:', !!(apiKey && apiKey !== 'your_openrouter_api_key_here' && apiKey.length > 10));
   console.groupEnd();
-
   console.groupEnd();
 
   return {

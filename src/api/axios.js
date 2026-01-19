@@ -3,7 +3,6 @@ import axios from 'axios';
 
 // Backend URL configuration with fallbacks
 const isDevelopment = import.meta.env.DEV;
-const isProduction = import.meta.env.VITE_PRODUCTION_MODE === 'true';
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL || 'https://ai-assistant-backend-oqpp.onrender.com';
 
 // Alternative backend URLs to try if primary fails
@@ -12,21 +11,22 @@ const FALLBACK_URLS = [
   // Add more fallback URLs here if needed
 ];
 
-console.log('🔧 Environment:', isDevelopment ? 'Development' : 'Production');
-console.log('🔧 Production Mode:', isProduction);
-console.log('🔧 Primary Backend URL:', BACKEND_URL);
-console.log('🔧 Fallback URLs:', FALLBACK_URLS);
+// Only log in development
+if (isDevelopment) {
+  console.log('🔧 Environment:', 'Development');
+  console.log('🔧 Primary Backend URL:', BACKEND_URL);
+}
 
-// Create axios instance with dynamic base URL
+// Create axios instance with dynamic base URL and timeout
 const createAxiosInstance = (baseURL) => {
   return axios.create({
     baseURL,
+    timeout: 30000, // 30 second timeout
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
       'X-Requested-With': 'XMLHttpRequest'
     },
-    // No timeout - let requests complete naturally
     withCredentials: false
   });
 };
