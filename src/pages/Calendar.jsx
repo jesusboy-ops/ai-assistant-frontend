@@ -14,7 +14,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Alert,
   Fab
 } from '@mui/material';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -264,13 +263,6 @@ const Calendar = () => {
           </Card>
         </Grid>
       </Grid>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
 
       <Grid container spacing={3}>
         {/* Calendar */}

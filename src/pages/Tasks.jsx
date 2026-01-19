@@ -23,7 +23,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Alert,
   Fab
 } from '@mui/material';
 import {
@@ -321,13 +320,6 @@ const Tasks = () => {
           </Select>
         </FormControl>
       </Box>
-
-      {/* Error Alert */}
-      {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
-      )}
 
       {/* Tasks List */}
       <Card>
