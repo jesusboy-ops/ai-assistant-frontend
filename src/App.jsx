@@ -39,6 +39,7 @@ import Translator from './pages/Translator';
 import Reminders from './pages/Reminders';
 import Math from './pages/Math';
 import SharedNote from './pages/SharedNote';
+import BackendDebug from './pages/BackendDebug';
 
 // Protected Route Component
 import ProtectedRoute from './components/ProtectedRoute';
@@ -94,6 +95,7 @@ function App() {
               <Route path="/reminders" element={<Reminders />} />
               <Route path="/math" element={<Math />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/debug" element={<BackendDebug />} />
             </Route>
 
             {/* Default redirect */}

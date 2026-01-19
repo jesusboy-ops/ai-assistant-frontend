@@ -70,6 +70,8 @@ const Calendar = () => {
       } else {
         await dispatch(createEvent(eventForm)).unwrap();
         toast.success('Event created successfully');
+        // Refresh the events list to show the new event
+        dispatch(fetchEvents());
       }
       
       setShowEventDialog(false);

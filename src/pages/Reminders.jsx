@@ -88,6 +88,8 @@ const Reminders = () => {
           `"${reminderForm.title}" reminder has been created`,
           { type: 'reminder_created', actionUrl: '/reminders' }
         );
+        // Refresh the reminders list to show the new reminder
+        dispatch(fetchReminders());
       }
       
       setShowReminderDialog(false);

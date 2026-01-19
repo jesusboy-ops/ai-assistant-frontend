@@ -50,6 +50,12 @@ const addAuthInterceptor = (instance) => {
       const fullUrl = config.baseURL ? config.baseURL + config.url : config.url;
       console.log('📤 API Request:', config.method?.toUpperCase(), fullUrl);
       
+      // Log request data for debugging 400 errors
+      if (config.data) {
+        console.log('📤 Request Data:', JSON.stringify(config.data, null, 2));
+        console.log('📤 Request Headers:', config.headers);
+      }
+      
       return config;
     },
     (error) => {
@@ -78,6 +84,13 @@ const addResponseInterceptor = (instance) => {
       // Special handling for 400 errors
       if (error.response?.status === 400) {
         console.log('🚨 400 Bad Request Details:');
+        console.log('  URL:', error.config?.url);
+        console.log('  Method:', error.config?.method?.toUpperCase());
+        console.log('  Request Headers:', error.config?.headers);
+        console.log('  Request Data:', error.config?.data);
+        console.log('  Response Status:', error.response?.status);
+        console.log('  Response Headers:', error.response?.headers);
+        console.log('  Response Data:', error.response?.data);
         console.log('  Error Message:', error.response?.data?.message || error.response?.data?.error || 'No error message provided');
         console.log('  Validation Errors:', error.response?.data?.errors || error.response?.data?.details || 'No validation details');
         console.log('  Full Response:', JSON.stringify(error.response?.data, null, 2));
@@ -90,6 +103,7 @@ const addResponseInterceptor = (instance) => {
               if (typeof err === 'string') return err;
               if (err.message) return err.message;
               if (err.msg) return err.msg;
+              if (err.field && err.message) return `${err.field}: ${err.message}`;
               return JSON.stringify(err);
             });
             error.userMessage = errorMessages.join(', ');
@@ -97,6 +111,8 @@ const addResponseInterceptor = (instance) => {
             error.userMessage = errorData.message;
           } else if (errorData.error) {
             error.userMessage = errorData.error;
+          } else if (typeof errorData === 'string') {
+            error.userMessage = errorData;
           }
         }
       }

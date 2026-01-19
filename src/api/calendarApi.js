@@ -16,7 +16,7 @@ export const calendarApi = {
       console.error('❌ Get events error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to fetch events'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to fetch events'
       };
     }
   },
@@ -52,7 +52,7 @@ export const calendarApi = {
       console.error('❌ Create event error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to create event'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to create event'
       };
     }
   },
@@ -72,7 +72,7 @@ export const calendarApi = {
       console.error('❌ Update event error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to update event'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to update event'
       };
     }
   },
@@ -92,7 +92,7 @@ export const calendarApi = {
       console.error('❌ Delete event error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to delete event'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to delete event'
       };
     }
   },
@@ -112,7 +112,7 @@ export const calendarApi = {
       console.error('❌ Get event error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to fetch event'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to fetch event'
       };
     }
   },
@@ -132,7 +132,7 @@ export const calendarApi = {
       console.error('❌ Get events by date range error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to fetch events by date range'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to fetch events by date range'
       };
     }
   },
@@ -153,7 +153,7 @@ export const calendarApi = {
       console.error('❌ Get today\'s events error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to fetch today\'s events'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to fetch today\'s events'
       };
     }
   },
@@ -173,7 +173,7 @@ export const calendarApi = {
       console.error('❌ Get upcoming events error:', error.response?.status, error.response?.data, error.message);
       return {
         success: false,
-        error: error.response?.data?.message || error.message || 'Failed to fetch upcoming events'
+        error: error.userMessage || error.response?.data?.message || error.message || 'Failed to fetch upcoming events'
       };
     }
   }

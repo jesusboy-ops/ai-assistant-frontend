@@ -29,7 +29,8 @@ import {
   Assignment as TaskIcon,
   Translate as TranslateIcon,
   Notifications as NotificationsIcon,
-  Calculate as CalculateIcon
+  Calculate as CalculateIcon,
+  BugReport as DebugIcon
 } from '@mui/icons-material';
 import useAuth from '../hooks/useAuth';
 
@@ -63,7 +64,8 @@ const Sidebar = ({ open, onClose, collapsed, onToggleCollapse }) => {
   ];
 
   const accountItems = [
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+    { text: 'Debug', icon: <DebugIcon />, path: '/debug' }
   ];
 
   const isActive = (path) => location.pathname === path;

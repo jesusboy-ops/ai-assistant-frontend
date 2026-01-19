@@ -121,6 +121,8 @@ const Tasks = () => {
             `"${taskForm.title}" task has been created`,
             { type: 'task_created', actionUrl: '/tasks' }
           );
+          // Refresh the tasks list to show the new task
+          dispatch(fetchTasks());
         } catch (apiError) {
           console.warn('⚠️ API task creation failed, creating local task:', apiError);
           // Fallback to local task creation
