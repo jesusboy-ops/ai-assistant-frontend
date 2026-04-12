@@ -1,263 +1,82 @@
-// Header component for dashboard
+// Header - Veon-style dark green theme
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
-  Typography,
-  Divider,
-  useTheme
+  Box, AppBar, Toolbar, IconButton, Avatar, Menu, MenuItem,
+  Typography, Divider, useTheme
 } from '@mui/material';
 import {
-  Search as SearchIcon,
-  Menu as MenuIcon,
-  Person as ProfileIcon,
-  Settings as SettingsIcon,
-  Logout as LogoutIcon
+  Search as SearchIcon, Menu as MenuIcon,
+  Person as ProfileIcon, Settings as SettingsIcon, Logout as LogoutIcon
 } from '@mui/icons-material';
 import NotificationCenter from '../components/NotificationCenter';
 import UnifiedSearch from '../components/UnifiedSearch';
-import { useSelector, useDispatch } from 'react-redux';
-import { formatSmartDate } from '../utils/formatDate';
+import { useSelector } from 'react-redux';
 import useAuth from '../hooks/useAuth';
+
+const ACCENT = '#a8e63d';
 
 const Header = ({ onSidebarToggle }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
-  
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileAnchor, setProfileAnchor] = useState(null);
 
-  const handleSearchOpen = () => {
-    setSearchOpen(true);
-  };
-  
-  const handleSearchClose = () => {
-    setSearchOpen(false);
-  };
-
-  const handleProfileOpen = (event) => setProfileAnchor(event.currentTarget);
-  const handleProfileClose = () => setProfileAnchor(null);
-
-  const handleProfileClick = () => {
-    handleProfileClose();
-    navigate('/settings'); // Navigate to settings page for profile management
-  };
-
-  const handleSettingsClick = () => {
-    handleProfileClose();
-    navigate('/settings');
-  };
-
-  const handleLogoutClick = () => {
-    handleProfileClose();
-    logout();
-  };
-
   return (
-    <AppBar
-      position="sticky"
-      elevation={0}
-      sx={{
-        backgroundColor: theme.palette.background.paper,
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        height: '70px'
-      }}
-    >
-      <Toolbar sx={{ 
-        justifyContent: 'space-between', 
-        paddingX: { xs: 2, sm: 3, md: 4 },
-        height: '70px',
-        minHeight: '70px !important' // Override default minHeight
-      }}>
-        {/* Mobile Menu Button */}
-        <IconButton
-          edge="start"
-          color="inherit"
-          onClick={onSidebarToggle}
-          sx={{ 
-            display: { md: 'none' },
-            marginRight: 3,
-            color: 'rgba(255, 255, 255, 0.8)',
-            padding: '12px',
-            '&:hover': {
-              color: '#06b6d4',
-              backgroundColor: 'rgba(6, 182, 212, 0.1)'
-            }
-          }}
-        >
+    <AppBar position="sticky" elevation={0} sx={{ backgroundColor: '#0a0d07', borderBottom: '1px solid rgba(168,230,61,0.1)', height: '64px' }}>
+      <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 }, height: '64px', minHeight: '64px !important' }}>
+        {/* Mobile menu */}
+        <IconButton edge="start" onClick={onSidebarToggle} sx={{ display: { md: 'none' }, mr: 2, color: 'rgba(255,255,255,0.7)', '&:hover': { color: ACCENT, background: 'rgba(168,230,61,0.08)' } }}>
           <MenuIcon />
         </IconButton>
 
-        {/* Search Bar - Improved styling */}
+        {/* Search bar */}
         <Box
-          sx={{
-            display: { xs: 'none', sm: 'flex' },
-            alignItems: 'center',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
-            borderRadius: '12px',
-            paddingX: 3,
-            paddingY: 1.5,
-            width: { sm: '280px', md: searchOpen ? '450px' : '350px' },
-            height: '44px',
-            transition: 'all 0.3s ease',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            cursor: 'pointer',
-            '&:hover': {
-              border: '1px solid rgba(102, 126, 234, 0.5)',
-              backgroundColor: 'rgba(102, 126, 234, 0.08)',
-              transform: 'translateY(-1px)'
-            },
-            '&:focus-within': {
-              border: '1px solid #667eea',
-              backgroundColor: 'rgba(102, 126, 234, 0.1)'
-            }
-          }}
-          onClick={handleSearchOpen}
+          onClick={() => setSearchOpen(true)}
+          sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: '8px', px: 2, py: 1, width: { sm: '260px', md: '340px' }, height: '38px', border: '1px solid rgba(168,230,61,0.1)', cursor: 'pointer', transition: 'all 0.2s ease', '&:hover': { border: '1px solid rgba(168,230,61,0.3)', background: 'rgba(168,230,61,0.04)' } }}
         >
-          <SearchIcon sx={{ 
-            color: 'rgba(255, 255, 255, 0.6)', 
-            marginRight: 2,
-            fontSize: '20px'
-          }} />
-          <Typography
-            sx={{
-              flex: 1,
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '14px',
-              fontWeight: 400,
-              letterSpacing: '0.2px'
-            }}
-          >
-            Search across all content...
-          </Typography>
-          <Box
-            sx={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-              borderRadius: '6px',
-              padding: '2px 8px',
-              fontSize: '11px',
-              color: 'rgba(255, 255, 255, 0.5)',
-              fontWeight: 500,
-              letterSpacing: '0.5px'
-            }}
-          >
-            ⌘K
-          </Box>
+          <SearchIcon sx={{ color: 'rgba(255,255,255,0.35)', mr: 1.5, fontSize: '18px' }} />
+          <Typography sx={{ flex: 1, color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem' }}>Search...</Typography>
+          <Box sx={{ background: 'rgba(255,255,255,0.07)', borderRadius: '4px', px: 0.8, py: 0.2, fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>⌘K</Box>
         </Box>
 
-        {/* Mobile Search Button */}
-        <IconButton
-          sx={{ 
-            display: { xs: 'flex', sm: 'none' },
-            color: 'rgba(255, 255, 255, 0.8)',
-            padding: '12px',
-            '&:hover': {
-              color: '#06b6d4',
-              backgroundColor: 'rgba(6, 182, 212, 0.1)'
-            }
-          }}
-          onClick={handleSearchOpen}
-        >
+        {/* Mobile search icon */}
+        <IconButton sx={{ display: { xs: 'flex', sm: 'none' }, color: 'rgba(255,255,255,0.6)', '&:hover': { color: ACCENT } }} onClick={() => setSearchOpen(true)}>
           <SearchIcon />
         </IconButton>
 
-        {/* Right side - Notifications and Profile with better spacing */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: { xs: 1, sm: 2, md: 3 },
-          marginLeft: { xs: 1, sm: 2 }
-        }}>
-          {/* Notifications */}
+        {/* Right side */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 } }}>
           <NotificationCenter />
-
-          {/* Profile Avatar with improved styling */}
-          <IconButton 
-            onClick={handleProfileOpen} 
-            sx={{ 
-              padding: '4px',
-              '&:hover': {
-                backgroundColor: 'rgba(6, 182, 212, 0.1)'
-              }
-            }}
-          >
-            <Avatar
-              sx={{
-                width: { xs: 36, sm: 40 },
-                height: { xs: 36, sm: 40 },
-                border: '2px solid #06b6d4',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 600,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  borderColor: '#667eea'
-                }
-              }}
-            >
+          <IconButton onClick={(e) => setProfileAnchor(e.currentTarget)} sx={{ p: '3px', '&:hover': { background: 'rgba(168,230,61,0.08)' } }}>
+            <Avatar sx={{ width: 34, height: 34, border: `1.5px solid rgba(168,230,61,0.4)`, fontSize: '14px', fontWeight: 700, background: 'linear-gradient(135deg, #2d5a1b 0%, #1a3a10 100%)', color: ACCENT }}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </Avatar>
           </IconButton>
         </Box>
 
-        {/* Profile Menu with improved styling */}
-        <Menu
-          anchorEl={profileAnchor}
-          open={Boolean(profileAnchor)}
-          onClose={handleProfileClose}
-          PaperProps={{
-            sx: {
-              marginTop: 2,
-              minWidth: 220,
-              backgroundColor: 'rgba(26, 26, 46, 0.95)',
-              border: '1px solid rgba(102, 126, 234, 0.3)',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)',
-              '& .MuiMenuItem-root': {
-                padding: '12px 20px',
-                '&:hover': {
-                  backgroundColor: 'rgba(102, 126, 234, 0.1)'
-                }
-              }
-            }
-          }}
-        >
-          <Box sx={{ padding: '16px 20px' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'white' }}>
-              {user?.name || 'User'}
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', marginTop: '4px' }}>
-              {user?.email || 'user@example.com'}
-            </Typography>
+        {/* Profile menu */}
+        <Menu anchorEl={profileAnchor} open={Boolean(profileAnchor)} onClose={() => setProfileAnchor(null)}
+          PaperProps={{ sx: { mt: 1.5, minWidth: 200, background: '#0f1409', border: '1px solid rgba(168,230,61,0.15)', borderRadius: '10px', '& .MuiMenuItem-root': { px: 2.5, py: 1.2, '&:hover': { background: 'rgba(168,230,61,0.07)' } } } }}>
+          <Box sx={{ px: 2.5, py: 2 }}>
+            <Typography sx={{ fontWeight: 600, color: 'white', fontSize: '0.9rem' }}>{user?.name || 'User'}</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.8rem', mt: 0.3 }}>{user?.email || ''}</Typography>
           </Box>
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '8px 0' }} />
-          <MenuItem onClick={handleProfileClick} sx={{ color: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', gap: 2 }}>
-            <ProfileIcon sx={{ fontSize: 18 }} />
-            Profile
+          <Divider sx={{ borderColor: 'rgba(168,230,61,0.1)', my: 0.5 }} />
+          <MenuItem onClick={() => { setProfileAnchor(null); navigate('/settings'); }} sx={{ color: 'rgba(255,255,255,0.8)', gap: 1.5, fontSize: '0.875rem' }}>
+            <ProfileIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.45)' }} /> Profile
           </MenuItem>
-          <MenuItem onClick={handleSettingsClick} sx={{ color: 'rgba(255, 255, 255, 0.9)', display: 'flex', alignItems: 'center', gap: 2 }}>
-            <SettingsIcon sx={{ fontSize: 18 }} />
-            Settings
+          <MenuItem onClick={() => { setProfileAnchor(null); navigate('/settings'); }} sx={{ color: 'rgba(255,255,255,0.8)', gap: 1.5, fontSize: '0.875rem' }}>
+            <SettingsIcon sx={{ fontSize: 16, color: 'rgba(255,255,255,0.45)' }} /> Settings
           </MenuItem>
-          <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', margin: '8px 0' }} />
-          <MenuItem onClick={handleLogoutClick} sx={{ color: 'rgba(255, 107, 107, 0.9)', display: 'flex', alignItems: 'center', gap: 2 }}>
-            <LogoutIcon sx={{ fontSize: 18 }} />
-            Logout
+          <Divider sx={{ borderColor: 'rgba(168,230,61,0.1)', my: 0.5 }} />
+          <MenuItem onClick={() => { setProfileAnchor(null); logout(); }} sx={{ color: 'rgba(239,68,68,0.8)', gap: 1.5, fontSize: '0.875rem' }}>
+            <LogoutIcon sx={{ fontSize: 16 }} /> Logout
           </MenuItem>
         </Menu>
       </Toolbar>
-
-      {/* Unified Search Dialog */}
-      <UnifiedSearch open={searchOpen} onClose={handleSearchClose} />
+      <UnifiedSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
     </AppBar>
   );
 };

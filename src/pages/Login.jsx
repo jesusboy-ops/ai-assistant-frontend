@@ -1,270 +1,190 @@
-// Simple Login page
 import { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  Box,
-  Card,
-  TextField,
-  Button,
-  Typography,
-  Link,
-  InputAdornment,
-  IconButton,
-  Container,
-  Alert
-} from '@mui/material';
-import {
-  Visibility,
-  VisibilityOff,
-  AutoAwesome as SparkIcon
-} from '@mui/icons-material';
 import useAuth from '../hooks/useAuth';
 import { clearError } from '../store/slices/authSlice';
 import { validateEmail, validateRequired } from '../utils/validators';
+import '../styles/login.css';
 
-const Login = () => {
+export default function Login() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { login, loading } = useAuth();
-  const { error } = useSelector((state) => state.auth);
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const { error } = useSelector((s) => s.auth);
+  const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPw, setShowPw] = useState(false);
 
-  // Clear any previous errors and loading states when component mounts
-  useEffect(() => {
-    dispatch(clearError());
-  }, [dispatch]);
+  useEffect(() => { dispatch(clearError()); }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
+    setForm(p => ({ ...p, [name]: value }));
+    if (errors[name]) setErrors(p => ({ ...p, [name]: null }));
   };
 
   const validate = () => {
-    const newErrors = {};
-    const emailError = validateEmail(formData.email);
-    const passwordError = validateRequired(formData.password, 'Password');
-    if (emailError) newErrors.email = emailError;
-    if (passwordError) newErrors.password = passwordError;
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const errs = {};
+    const emailErr = validateEmail(form.email);
+    const passErr = validateRequired(form.password, 'Password');
+    if (emailErr) errs.email = emailErr;
+    if (passErr) errs.password = passErr;
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    try { 
-      await login(formData.email, formData.password); 
-    } catch (error) {
-      // Error handling is done in the auth hook
-    }
+    try { await login(form.email, form.password); } catch {}
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 2
-      }}
-    >
-      <Container maxWidth="md">
-        <Card
-          sx={{
-            p: { xs: 4, sm: 5, md: 6 },
-            maxWidth: { xs: '100%', sm: 500, md: 600, lg: 700 },
-            margin: '0 auto',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: 3,
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)'
-          }}
-        >
-          {/* Logo and Header */}
-          <Box sx={{ textAlign: 'center', mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
-              <SparkIcon sx={{ fontSize: 40, color: '#06b6d4', mr: 1 }} />
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  color: '#ffffff'
-                }}
-              >
-                Spark
-              </Typography>
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 600, mb: 1, color: 'white' }}>
-              Welcome back
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Sign in to your account
-            </Typography>
-          </Box>
+    <div className="login-page">
+      <div className="login-card">
 
-          {/* Login Form */}
-          <Box component="form" onSubmit={handleSubmit}>
-            {/* Error Alert */}
-            {error && (
-              <Alert 
-                severity="error" 
-                sx={{ 
-                  mb: 2,
-                  backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                  color: '#ff6b6b',
-                  border: '1px solid rgba(244, 67, 54, 0.3)',
-                  '& .MuiAlert-icon': { color: '#ff6b6b' }
-                }}
-              >
-                {error}
-              </Alert>
-            )}
+        {/* ── LEFT: FORM ── */}
+        <div className="login-left">
+          {/* Logo */}
+          <div className="login-logo">
+            <div className="login-logo-icon">✦</div>
+            <span className="login-logo-text">SPARK</span>
+          </div>
 
-            <TextField
-              fullWidth
-              label="Email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={Boolean(errors.email)}
-              helperText={errors.email}
-              sx={{
-                mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                  '&:hover fieldset': { borderColor: 'rgba(6, 182, 212, 0.5)' },
-                  '&.Mui-focused fieldset': { borderColor: '#06b6d4' }
-                },
-                '& .MuiInputLabel-root': { 
-                  color: 'rgba(255, 255, 255, 0.7)', 
-                  '&.Mui-focused': { color: '#06b6d4' } 
-                },
-                '& .MuiInputBase-input': { color: 'white' }
-              }}
-            />
+          <h1 className="login-heading">Welcome to Spark</h1>
+          <p className="login-subheading">Start your experience by signing in or signing up.</p>
 
-            <TextField
-              fullWidth
-              label="Password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="current-password"
-              value={formData.password}
-              onChange={handleChange}
-              error={Boolean(errors.password)}
-              helperText={errors.password}
-              sx={{
-                mb: 2,
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.2)' },
-                  '&:hover fieldset': { borderColor: 'rgba(6, 182, 212, 0.5)' },
-                  '&.Mui-focused fieldset': { borderColor: '#06b6d4' }
-                },
-                '& .MuiInputLabel-root': { 
-                  color: 'rgba(255, 255, 255, 0.7)', 
-                  '&.Mui-focused': { color: '#06b6d4' } 
-                },
-                '& .MuiInputBase-input': { color: 'white' }
-              }}
-              slotProps={{
-                input: {
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        sx={{ color: 'rgba(255, 255, 255, 0.7)' }}
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }
-              }}
-            />
+          {/* Tab switcher */}
+          <div className="login-tabs">
+            <button className="login-tab active">Sign In</button>
+            <button className="login-tab" onClick={() => navigate('/signup')}>Sign Up</button>
+          </div>
 
-            <Box sx={{ textAlign: 'right', mb: 3 }}>
-              <Link
-                component={RouterLink}
-                to="/forgot-password"
-                variant="body2"
-                sx={{
-                  color: '#06b6d4',
-                  textDecoration: 'none',
-                  '&:hover': { textDecoration: 'underline' }
-                }}
-              >
-                Forgot password?
-              </Link>
-            </Box>
+          {/* Error */}
+          {error && <div className="login-error-alert">{error}</div>}
 
-            <Button
-              fullWidth
-              type="submit"
-              variant="contained"
-              disabled={loading}
-              sx={{
-                py: 1.5,
-                mb: 3,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                '&:hover': {
-                  background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%)'
-                },
-                '&:disabled': { 
-                  background: 'rgba(6, 182, 212, 0.3)' 
-                },
-                position: 'relative'
-              }}
-            >
+          <form onSubmit={handleSubmit}>
+            {/* Email */}
+            <div className="login-field">
+              <label>Email Address <span>*</span></label>
+              <div className="login-input-wrap">
+                <span className="login-input-icon">✉</span>
+                <input
+                  className={`login-input${errors.email ? ' error' : ''}`}
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email address"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                />
+              </div>
+              {errors.email && <span className="login-field-error">{errors.email}</span>}
+            </div>
+
+            {/* Password */}
+            <div className="login-field">
+              <label>Password <span>*</span></label>
+              <div className="login-input-wrap">
+                <span className="login-input-icon">🔒</span>
+                <input
+                  className={`login-input${errors.password ? ' error' : ''}`}
+                  type={showPw ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Enter your password"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="current-password"
+                />
+                <button type="button" className="login-input-toggle" onClick={() => setShowPw(!showPw)}>
+                  {showPw ? '🙈' : '👁'}
+                </button>
+              </div>
+              {errors.password && <span className="login-field-error">{errors.password}</span>}
+            </div>
+
+            <div className="login-forgot">
+              <RouterLink to="/forgot-password">Forgot password?</RouterLink>
+            </div>
+
+            <button type="submit" className="login-submit" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
-            </Button>
+            </button>
 
-            {loading && (
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.7)', 
-                  textAlign: 'center', 
-                  mb: 2,
-                  fontSize: '0.9rem'
-                }}
-              >
-                If this is taking a while, the server may be starting up. Please wait...
-              </Typography>
-            )}
-          </Box>
+            {loading && <p className="login-loading-note">Server may be starting up, please wait...</p>}
+          </form>
 
-          {/* Sign up link */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Don't have an account?{' '}
-              <Link
-                component={RouterLink}
-                to="/signup"
-                sx={{ 
-                  color: '#06b6d4', 
-                  fontWeight: 600, 
-                  textDecoration: 'none', 
-                  '&:hover': { textDecoration: 'underline' } 
-                }}
-              >
-                Sign up
-              </Link>
-            </Typography>
-          </Box>
-        </Card>
-      </Container>
-    </Box>
+          <div className="login-footer-text">
+            Don't have an account?{' '}
+            <RouterLink to="/signup">Create one free</RouterLink>
+            <br /><br />
+            <span style={{ color: '#ccc' }}>Copyright · Spark AI, All Right Reserved</span>
+          </div>
+        </div>
+
+        {/* ── RIGHT: VISUAL PANEL ── */}
+        <div className="login-right">
+          <div className="login-right-grid" />
+          <div className="login-right-glow" />
+
+          {/* Floating preview cards */}
+          <div className="login-right-cards">
+            <div className="preview-card preview-card-1">
+              <div className="preview-card-label">AI Conversations</div>
+              <div className="preview-card-value">24 Active Chats</div>
+              <div className="preview-card-bar">
+                <div className="preview-card-bar-fill" style={{ width: '72%' }} />
+              </div>
+              <div className="preview-card-row">
+                <span className="preview-card-tag">+12% this week</span>
+                <span className="preview-card-dot" />
+              </div>
+            </div>
+
+            <div className="preview-card preview-card-2">
+              <div className="preview-card-label">Tasks Completed</div>
+              <div className="preview-card-value">$17 saved / hr</div>
+              <div className="preview-card-bar">
+                <div className="preview-card-bar-fill" style={{ width: '58%', background: '#f59e0b' }} />
+              </div>
+              <div className="preview-card-row">
+                <span className="preview-card-tag">8 tasks today</span>
+                <span className="preview-card-dot" style={{ background: '#f59e0b' }} />
+              </div>
+            </div>
+
+            <div className="preview-card preview-card-3">
+              <div className="preview-card-label">Smart Notes</div>
+              <div className="preview-card-value">142 Notes</div>
+              <div className="preview-card-bar">
+                <div className="preview-card-bar-fill" style={{ width: '85%', background: '#10b981' }} />
+              </div>
+              <div className="preview-card-row">
+                <span className="preview-card-tag">AI summaries on</span>
+                <span className="preview-card-dot" style={{ background: '#10b981' }} />
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom copy */}
+          <div className="login-right-bottom">
+            <div className="login-right-icon">✦</div>
+            <h2 className="login-right-title">
+              A Unified Hub for <em>Smarter</em><br />AI-Powered Productivity
+            </h2>
+            <p className="login-right-desc">
+              Spark AI empowers you with a unified productivity command center —
+              delivering deep insights and a 360° view of your entire workflow.
+            </p>
+            <div className="login-right-dots">
+              <div className="login-right-dot active" />
+              <div className="login-right-dot" />
+              <div className="login-right-dot" />
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
   );
-};
-
-export default Login;
+}

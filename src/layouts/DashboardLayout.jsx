@@ -71,7 +71,7 @@ const DashboardLayout = () => {
           display: 'flex', 
           flexDirection: 'column', 
           minHeight: '100vh',
-          marginLeft: isMobile ? 0 : sidebarCollapsed ? '90px' : '290px',
+          marginLeft: isMobile ? 0 : sidebarCollapsed ? '72px' : '260px',
           transition: 'margin-left 0.3s ease',
           position: 'relative'
         }}
@@ -87,7 +87,7 @@ const DashboardLayout = () => {
           component="main"
           sx={{
             flex: 1,
-            height: 'calc(100vh - 64px)', // Subtract header height
+            height: 'calc(100vh - 64px)',
             overflowY: 'auto',
             overflowX: 'hidden',
             padding: { xs: 1.5, sm: 2, md: 3 },
