@@ -136,3 +136,37 @@ code {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* CSS Grid Utilities & Container Queries */
+.container-root {
+  container-type: inline-size;
+  container-name: dynamic-card;
+}
+
+.grid-layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+@container dynamic-card (min-width: 600px) {
+  .card-content-adaptive {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+}
+
+@container dynamic-card (max-width: 599.9px) {
+  .card-content-adaptive {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Glass UI Variables */
+:root {
+  --glass-blur: 16px;
+}

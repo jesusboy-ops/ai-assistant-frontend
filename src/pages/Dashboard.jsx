@@ -1,28 +1,41 @@
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import {
+  ChatBubbleOutline as ChatIcon,
+  TaskAlt as TaskIcon,
+  NoteAlt as NoteIcon,
+  NotificationsNone as ReminderIcon,
+  CalendarMonth as CalendarIcon,
+  FolderOpen as FileIcon,
+  Language as TranslateIcon,
+  MenuBook as DictionaryIcon,
+  Calculate as MathIcon,
+  EventBusy as EventEmptyIcon
+} from '@mui/icons-material';
 import ErrorBoundary from '../components/ErrorBoundary';
 import '../styles/dashboard.css';
 
 const ACCENT = '#a8e63d';
 
 const stats = (data) => [
-  { label: 'AI Chats',  value: data.chats,     icon: '💬', color: ACCENT,    bg: 'rgba(168,230,61,0.1)',   border: 'rgba(168,230,61,0.18)',   path: '/chat' },
-  { label: 'Tasks',     value: data.tasks,     icon: '✅', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',   border: 'rgba(245,158,11,0.18)',   path: '/tasks' },
-  { label: 'Notes',     value: data.notes,     icon: '📝', color: '#10b981', bg: 'rgba(16,185,129,0.1)',   border: 'rgba(16,185,129,0.18)',   path: '/notes' },
-  { label: 'Reminders', value: data.reminders, icon: '🔔', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.18)',    path: '/reminders' },
-  { label: 'Events',    value: data.events,    icon: '📅', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)',   border: 'rgba(139,92,246,0.18)',   path: '/calendar' },
-  { label: 'Files',     value: data.files,     icon: '📁', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)',    border: 'rgba(6,182,212,0.18)',    path: '/files' },
+  { label: 'AI Chats',  value: data.chats,     icon: <ChatIcon fontSize="small" />, color: ACCENT,    bg: 'rgba(168,230,61,0.1)',   border: 'rgba(168,230,61,0.18)',   path: '/chat' },
+  { label: 'Tasks',     value: data.tasks,     icon: <TaskIcon fontSize="small" />, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',   border: 'rgba(245,158,11,0.18)',   path: '/tasks' },
+  { label: 'Notes',     value: data.notes,     icon: <NoteIcon fontSize="small" />, color: '#10b981', bg: 'rgba(16,185,129,0.1)',   border: 'rgba(16,185,129,0.18)',   path: '/notes' },
+  { label: 'Reminders', value: data.reminders, icon: <ReminderIcon fontSize="small" />, color: '#ef4444', bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.18)',    path: '/reminders' },
+  { label: 'Events',    value: data.events,    icon: <CalendarIcon fontSize="small" />, color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)',   border: 'rgba(139,92,246,0.18)',   path: '/calendar' },
+  { label: 'Files',     value: data.files,     icon: <FileIcon fontSize="small" />, color: '#06b6d4', bg: 'rgba(6,182,212,0.1)',    border: 'rgba(6,182,212,0.18)',    path: '/files' },
 ];
 
 const tools = [
-  { name: 'AI Chat',     desc: 'Intelligent conversations for brainstorming, coding help, and writing assistance.',  icon: '💬', color: ACCENT,    bg: 'rgba(168,230,61,0.1)',  border: 'rgba(168,230,61,0.18)',  tag: 'Popular', tagBg: 'rgba(168,230,61,0.12)', tagColor: ACCENT,    path: '/chat' },
-  { name: 'Tasks',       desc: 'Create and organize tasks with AI assistance, due dates, and priority management.',  icon: '✅', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/tasks' },
-  { name: 'Notes',       desc: 'Rich notes with AI summaries, formatting, and easy sharing capabilities.',           icon: '📝', color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/notes' },
-  { name: 'Reminders',   desc: 'Smart reminders with context detection, notifications, and calendar sync.',          icon: '🔔', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.18)',  tag: null,      tagBg: '',                     tagColor: '',        path: '/reminders' },
-  { name: 'Calendar',    desc: 'Schedule and manage events, meetings, and appointments with ease.',                  icon: '📅', color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/calendar' },
-  { name: 'Translator',  desc: 'Instant translation across 100+ languages with pronunciation guides.',               icon: '🌐', color: '#06b6d4', bg: 'rgba(6,182,212,0.1)',  border: 'rgba(6,182,212,0.18)',  tag: 'New',     tagBg: 'rgba(6,182,212,0.12)', tagColor: '#06b6d4', path: '/translator' },
-  { name: 'Dictionary',  desc: 'Definitions, synonyms, pronunciations, and save your favorites.',                    icon: '📖', color: '#a78bfa', bg: 'rgba(167,139,250,0.1)',border: 'rgba(167,139,250,0.18)',tag: null,      tagBg: '',                     tagColor: '',        path: '/dictionary' },
-  { name: 'Math Solver', desc: 'Solve equations with step-by-step explanations and visualizations.',                 icon: '🧮', color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/math' },
+  { name: 'AI Chat',     desc: 'Intelligent conversations for brainstorming, coding help, and writing assistance.',  icon: <ChatIcon />, color: ACCENT,    bg: 'rgba(168,230,61,0.1)',  border: 'rgba(168,230,61,0.18)',  tag: 'Popular', tagBg: 'rgba(168,230,61,0.12)', tagColor: ACCENT,    path: '/chat' },
+  { name: 'Tasks',       desc: 'Create and organize tasks with AI assistance, due dates, and priority management.',  icon: <TaskIcon />, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/tasks' },
+  { name: 'Notes',       desc: 'Rich notes with AI summaries, formatting, and easy sharing capabilities.',           icon: <NoteIcon />, color: '#10b981', bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/notes' },
+  { name: 'Reminders',   desc: 'Smart reminders with context detection, notifications, and calendar sync.',          icon: <ReminderIcon />, color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.18)',  tag: null,      tagBg: '',                     tagColor: '',        path: '/reminders' },
+  { name: 'Calendar',    desc: 'Schedule and manage events, meetings, and appointments with ease.',                  icon: <CalendarIcon />, color: '#8b5cf6', bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/calendar' },
+  { name: 'Translator',  desc: 'Instant translation across 100+ languages with pronunciation guides.',               icon: <TranslateIcon />, color: '#06b6d4', bg: 'rgba(6,182,212,0.1)',  border: 'rgba(6,182,212,0.18)',  tag: 'New',     tagBg: 'rgba(6,182,212,0.12)', tagColor: '#06b6d4', path: '/translator' },
+  { name: 'Dictionary',  desc: 'Definitions, synonyms, pronunciations, and save your favorites.',                    icon: <DictionaryIcon />, color: '#a78bfa', bg: 'rgba(167,139,250,0.1)',border: 'rgba(167,139,250,0.18)',tag: null,      tagBg: '',                     tagColor: '',        path: '/dictionary' },
+  { name: 'Math Solver', desc: 'Solve equations with step-by-step explanations and visualizations.',                 icon: <MathIcon />, color: '#f97316', bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.18)', tag: null,      tagBg: '',                     tagColor: '',        path: '/math' },
 ];
 
 export default function Dashboard() {
@@ -69,7 +82,7 @@ export default function Dashboard() {
                 <span className="dash-welcome-tag">Dashboard</span>
               </div>
               <h1 className="dash-welcome-title">
-                Welcome back, {user?.name?.split(' ')[0] || 'there'} 👋
+                Welcome back, {user?.name?.split(' ')[0] || 'there'}
               </h1>
               <p className="dash-welcome-sub">Here's what's happening with your productivity today</p>
             </div>
@@ -86,7 +99,7 @@ export default function Dashboard() {
                 <h2 className="dash-section-title">Your activity</h2>
               </div>
             </div>
-            <div className="stats-grid">
+            <div className="stats-grid" style={{ marginBottom: '2rem' }}>
               {stats(statData).map((s) => (
                 <div
                   key={s.label}
@@ -109,6 +122,35 @@ export default function Dashboard() {
                   <div className="stat-label">{s.label}</div>
                 </div>
               ))}
+            </div>
+            
+            {/* Canvas Data Visualization using Recharts */}
+            <div className="dash-section-head" style={{ marginTop: '2rem' }}>
+              <div>
+                <div className="dash-section-label">Analytics</div>
+                <h2 className="dash-section-title">Activity Breakdown</h2>
+              </div>
+            </div>
+            <div style={{ height: 300, background: 'rgba(15, 20, 9, 0.45)', backdropFilter: 'blur(16px)', border: '1px solid rgba(168, 230, 61, 0.12)', borderRadius: '16px', padding: '1rem', marginTop: '1rem' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={[
+                  { name: 'Chats', value: statData.chats, fill: '#a8e63d' },
+                  { name: 'Tasks', value: statData.tasks, fill: '#f59e0b' },
+                  { name: 'Notes', value: statData.notes, fill: '#10b981' },
+                  { name: 'Reminders', value: statData.reminders, fill: '#ef4444' },
+                  { name: 'Events', value: statData.events, fill: '#8b5cf6' },
+                  { name: 'Files', value: statData.files, fill: '#06b6d4' }
+                ]} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis dataKey="name" stroke="rgba(255,255,255,0.4)" tick={{ fill: 'rgba(255,255,255,0.6)' }} axisLine={false} tickLine={false} />
+                  <YAxis stroke="rgba(255,255,255,0.4)" tick={{ fill: 'rgba(255,255,255,0.6)' }} axisLine={false} tickLine={false} />
+                  <RechartsTooltip 
+                    cursor={{ fill: 'rgba(255,255,255,0.05)' }} 
+                    contentStyle={{ backgroundColor: 'rgba(10,13,7,0.9)', border: '1px solid rgba(168,230,61,0.2)', borderRadius: '8px', color: '#fff' }} 
+                  />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
@@ -216,7 +258,7 @@ export default function Dashboard() {
 
                 {events.length === 0 ? (
                   <div className="events-empty">
-                    <div className="events-empty-icon">📅</div>
+                    <div className="events-empty-icon"><EventEmptyIcon fontSize="large" sx={{ opacity: 0.8 }} /></div>
                     <div>
                       <p className="events-empty-title">No upcoming events</p>
                       <p className="events-empty-sub">Add your first event to get started</p>

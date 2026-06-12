@@ -110,28 +110,59 @@ export const darkTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          backgroundColor: 'rgba(15, 20, 9, 0.85)',
+          backgroundColor: 'rgba(15, 20, 9, 0.45)',
+          backdropFilter: 'blur(calc(var(--glass-blur, 12px)))',
+          WebkitBackdropFilter: 'blur(calc(var(--glass-blur, 12px)))',
           border: '1px solid rgba(168, 230, 61, 0.12)',
-          borderRadius: 12,
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': { transform: 'translateY(-2px)' }
+          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.3)',
+          borderRadius: 16,
+          transition: 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '50%',
+            height: '100%',
+            background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0) 100%)',
+            transform: 'skewX(-25deg)',
+            transition: 'all 0.5s',
+            zIndex: 1,
+            pointerEvents: 'none'
+          },
+          '&:hover': { 
+            transform: 'translateY(-4px)',
+            boxShadow: '0 12px 40px 0 rgba(168, 230, 61, 0.15)',
+            border: '1px solid rgba(168, 230, 61, 0.3)',
+            '&::before': {
+              left: '200%'
+            }
+          }
         }
       }
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(10, 13, 7, 0.95)',
+          backgroundColor: 'rgba(10, 13, 7, 0.65)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
           backgroundImage: 'none',
-          borderBottom: '1px solid rgba(168, 230, 61, 0.1)'
+          borderBottom: '1px solid rgba(168, 230, 61, 0.15)',
+          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)'
         }
       }
     },
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundColor: '#0a0d07',
-          borderRight: '1px solid rgba(168, 230, 61, 0.1)'
+          backgroundColor: 'rgba(10, 13, 7, 0.7)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRight: '1px solid rgba(168, 230, 61, 0.15)',
+          boxShadow: '4px 0 30px rgba(0, 0, 0, 0.1)'
         }
       }
     }

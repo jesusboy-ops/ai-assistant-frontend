@@ -1,4 +1,3 @@
-// Tasks page component
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -8,16 +7,8 @@ import {
   Card,
   CardContent,
   Grid,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   IconButton,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
@@ -30,18 +21,20 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  CheckCircle as CompleteIcon,
-  Schedule as ScheduleIcon,
-  Flag as PriorityIcon
+  Schedule as ScheduleIcon
 } from '@mui/icons-material';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { motion } from 'framer-motion';
 import { fetchTasks, createTask, updateTask, deleteTask, setFilter, setSortBy, addTaskLocal } from '../store/slices/tasksSlice';
 import LoadingSpinner from '../components/LoadingSpinner';
 import notificationService from '../services/notificationService';
 import toast from '../utils/toast';
+import SlidingPanel from '../components/SlidingPanel';
 
 const Tasks = () => {
   const dispatch = useDispatch();
   const { tasks = [], loading, error, filter, sortBy } = useSelector((state) => state.tasks);
+  
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -50,55 +43,62 @@ const Tasks = () => {
     description: '',
     priority: 'medium',
     dueDate: '',
-    status: 'pending'
+    status: 'pending' // Maps to 'To Do', 'in_progress', 'completed'
   });
 
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        await dispatch(fetchTasks()).unwrap();
-      } catch (error) {
-        console.error('Failed to load tasks:', error);
-        // Don't show error for initial load, just log it
-        // The error will be handled by the Redux slice
-      }
-    };
-    
-    loadTasks();
+    dispatch(fetchTasks());
   }, [dispatch]);
 
   const filteredTasks = Array.isArray(tasks) ? tasks.filter(task => {
     if (filter === 'all') return true;
     if (filter === 'pending') return task.status === 'pending';
+    if (filter === 'in_progress') return task.status === 'in_progress';
     if (filter === 'completed') return task.status === 'completed';
     if (filter === 'overdue') {
-      return task.status === 'pending' && task.dueDate && new Date(task.dueDate) < new Date();
+      return task.status !== 'completed' && task.dueDate && new Date(task.dueDate) < new Date();
     }
     return true;
   }) : [];
 
-  const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (sortBy === 'dueDate') {
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate) - new Date(b.dueDate);
+  const columns = {
+    pending: {
+      name: 'To Do',
+      items: filteredTasks.filter(t => t.status === 'pending' || !t.status),
+      color: '#3b82f6'
+    },
+    in_progress: {
+      name: 'In Progress',
+      items: filteredTasks.filter(t => t.status === 'in_progress'),
+      color: '#f59e0b'
+    },
+    completed: {
+      name: 'Completed',
+      items: filteredTasks.filter(t => t.status === 'completed'),
+      color: '#10b981'
     }
-    if (sortBy === 'priority') {
-      const priorityOrder = { high: 3, medium: 2, low: 1 };
-      return priorityOrder[b.priority] - priorityOrder[a.priority];
-    }
-    if (sortBy === 'created') {
-      return new Date(b.createdAt) - new Date(a.createdAt);
-    }
-    return 0;
-  });
+  };
 
-  // Debug logging
-  useEffect(() => {
-    console.log('📋 Current tasks in state:', tasks);
-    console.log('📋 Filtered tasks:', filteredTasks);
-    console.log('📋 Sorted tasks:', sortedTasks);
-  }, [tasks, filteredTasks, sortedTasks]);
+  const handleDragEnd = async (result) => {
+    if (!result.destination) return;
+    const { source, destination, draggableId } = result;
+
+    if (source.droppableId !== destination.droppableId) {
+      const task = tasks.find(t => t.id.toString() === draggableId);
+      if (task) {
+        try {
+          const newStatus = destination.droppableId;
+          await dispatch(updateTask({
+            id: task.id,
+            updates: { ...task, status: newStatus }
+          })).unwrap();
+          toast.success(`Task moved to ${columns[newStatus].name}`);
+        } catch (error) {
+          toast.error('Failed to move task');
+        }
+      }
+    }
+  };
 
   const handleCreateTask = async () => {
     if (!taskForm.title.trim()) {
@@ -106,35 +106,17 @@ const Tasks = () => {
       return;
     }
 
-    console.log('📝 Creating task with form data:', taskForm);
     setSubmitting(true);
     try {
       if (editingTask) {
-        const result = await dispatch(updateTask({ id: editingTask.id, updates: taskForm })).unwrap();
-        console.log('✅ Task updated result:', result);
+        await dispatch(updateTask({ id: editingTask.id, updates: taskForm })).unwrap();
         toast.success('Task updated successfully');
-        notificationService.createNotification(
-          'success',
-          'Task Updated',
-          `"${taskForm.title}" has been updated`,
-          { type: 'task_updated', actionUrl: '/tasks' }
-        );
       } else {
         try {
-          const result = await dispatch(createTask(taskForm)).unwrap();
-          console.log('✅ Task created result:', result);
+          await dispatch(createTask(taskForm)).unwrap();
           toast.success('Task created successfully');
-          notificationService.createNotification(
-            'success',
-            'Task Created',
-            `"${taskForm.title}" task has been created`,
-            { type: 'task_created', actionUrl: '/tasks' }
-          );
-          // Refresh the tasks list to show the new task
           dispatch(fetchTasks());
         } catch (apiError) {
-          console.warn('⚠️ API task creation failed, creating local task:', apiError);
-          // Fallback to local task creation
           const localTask = {
             ...taskForm,
             id: Date.now(),
@@ -143,23 +125,14 @@ const Tasks = () => {
             isLocal: true
           };
           dispatch(addTaskLocal(localTask));
-          toast.success('Task created locally (API unavailable)');
-          notificationService.createNotification(
-            'success',
-            'Task Created Locally',
-            `"${taskForm.title}" task has been created locally`,
-            { type: 'task_created_local', actionUrl: '/tasks' }
-          );
+          toast.success('Task created locally');
         }
       }
-      
       setShowTaskDialog(false);
       setEditingTask(null);
       setTaskForm({ title: '', description: '', priority: 'medium', dueDate: '', status: 'pending' });
     } catch (error) {
-      console.error('❌ Task creation error:', error);
       toast.error(error || 'Failed to save task');
-      notificationService.systemError(new Error(error || 'Failed to save task'), { context: 'task_creation' });
     } finally {
       setSubmitting(false);
     }
@@ -182,36 +155,9 @@ const Tasks = () => {
       try {
         await dispatch(deleteTask(taskId)).unwrap();
         toast.success('Task deleted successfully');
-        notificationService.createNotification(
-          'info',
-          'Task Deleted',
-          'Task has been deleted',
-          { type: 'task_deleted', actionUrl: '/tasks' }
-        );
       } catch (error) {
-        toast.error(error || 'Failed to delete task');
-        notificationService.systemError(new Error(error || 'Failed to delete task'), { context: 'task_deletion' });
+        toast.error('Failed to delete task');
       }
-    }
-  };
-
-  const handleCompleteTask = async (task) => {
-    try {
-      const newStatus = task.status === 'completed' ? 'pending' : 'completed';
-      await dispatch(updateTask({ 
-        id: task.id, 
-        updates: { ...task, status: newStatus }
-      })).unwrap();
-      toast.success(`Task ${newStatus === 'completed' ? 'completed' : 'reopened'}`);
-      notificationService.createNotification(
-        newStatus === 'completed' ? 'success' : 'info',
-        `Task ${newStatus === 'completed' ? 'Completed' : 'Reopened'}`,
-        `"${task.title}" has been ${newStatus === 'completed' ? 'completed' : 'reopened'}`,
-        { type: 'task_status_changed', actionUrl: '/tasks' }
-      );
-    } catch (error) {
-      toast.error(error || 'Failed to update task');
-      notificationService.systemError(new Error(error || 'Failed to update task'), { context: 'task_status_update' });
     }
   };
 
@@ -224,316 +170,176 @@ const Tasks = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'pending': return 'primary';
-      default: return 'default';
-    }
-  };
-
   return (
-    <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ p: 3, minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <TaskIcon color="primary" sx={{ mr: 2, fontSize: 32 }} />
           <Box>
-            <Typography variant="h4" component="h1" fontWeight={700}>
-              Tasks
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Manage your tasks and to-do items
-            </Typography>
+            <Typography variant="h4" component="h1" fontWeight={700}>Tasks</Typography>
+            <Typography variant="body2" color="text.secondary">Kanban Board</Typography>
           </Box>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>Filter</InputLabel>
+            <Select value={filter} label="Filter" onChange={(e) => dispatch(setFilter(e.target.value))}>
+              <MenuItem value="all">All Tasks</MenuItem>
+              <MenuItem value="pending">To Do</MenuItem>
+              <MenuItem value="in_progress">In Progress</MenuItem>
+              <MenuItem value="completed">Completed</MenuItem>
+              <MenuItem value="overdue">Overdue</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
       </Box>
 
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="primary">
-                {tasks.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total Tasks
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="warning.main">
-                {tasks.filter(t => t.status === 'pending').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pending
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="success.main">
-                {tasks.filter(t => t.status === 'completed').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Completed
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" color="error.main">
-                {tasks.filter(t => t.status === 'pending' && t.dueDate && new Date(t.dueDate) < new Date()).length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Overdue
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <LoadingSpinner size={40} type="modern" color="#667eea" text="Loading Kanban..." />
+        </Box>
+      ) : (
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Box sx={{ display: 'flex', gap: 3, overflowX: 'auto', pb: 2 }}>
+            {Object.entries(columns).map(([columnId, column]) => (
+              <Box key={columnId} sx={{ minWidth: 320, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, px: 1 }}>
+                  <Typography variant="h6" fontWeight={600} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: column.color }} />
+                    {column.name}
+                  </Typography>
+                  <Chip size="small" label={column.items.length} sx={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
+                </Box>
 
-      {/* Filters and Sort */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Filter</InputLabel>
-          <Select
-            value={filter}
-            label="Filter"
-            onChange={(e) => dispatch(setFilter(e.target.value))}
-          >
-            <MenuItem value="all">All Tasks</MenuItem>
-            <MenuItem value="pending">Pending</MenuItem>
-            <MenuItem value="completed">Completed</MenuItem>
-            <MenuItem value="overdue">Overdue</MenuItem>
-          </Select>
-        </FormControl>
-
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Sort By</InputLabel>
-          <Select
-            value={sortBy}
-            label="Sort By"
-            onChange={(e) => dispatch(setSortBy(e.target.value))}
-          >
-            <MenuItem value="dueDate">Due Date</MenuItem>
-            <MenuItem value="priority">Priority</MenuItem>
-            <MenuItem value="created">Created</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Tasks List */}
-      <Card>
-        <CardContent>
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <LoadingSpinner 
-                size={32} 
-                type="modern" 
-                color="#667eea" 
-                text="Loading tasks..." 
-              />
-            </Box>
-          ) : sortedTasks.length === 0 ? (
-            <Box sx={{ textAlign: 'center', p: 3 }}>
-              <TaskIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                No tasks found
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Create your first task to get started
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={() => setShowTaskDialog(true)}
-              >
-                Create Task
-              </Button>
-            </Box>
-          ) : (
-            <List>
-              {sortedTasks.map((task, index) => (
-                <ListItem
-                  key={task.id}
-                  divider={index < sortedTasks.length - 1}
-                  sx={{
-                    opacity: task.status === 'completed' ? 0.7 : 1,
-                    textDecoration: task.status === 'completed' ? 'line-through' : 'none'
-                  }}
-                >
-                  <ListItemIcon>
-                    <IconButton
-                      onClick={() => handleCompleteTask(task)}
-                      color={task.status === 'completed' ? 'success' : 'default'}
+                <Droppable droppableId={columnId}>
+                  {(provided, snapshot) => (
+                    <Box
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      sx={{
+                        background: snapshot.isDraggingOver ? 'rgba(255,255,255,0.05)' : 'rgba(10, 13, 7, 0.4)',
+                        borderRadius: 3,
+                        p: 2,
+                        minHeight: 200,
+                        border: '1px dashed rgba(255,255,255,0.1)',
+                        transition: 'background 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2
+                      }}
                     >
-                      <CompleteIcon />
-                    </IconButton>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="body1" fontWeight={task.status === 'completed' ? 400 : 600}>
-                          {task.title && task.title !== 'null' ? task.title : '[No Title]'}
-                        </Typography>
-                        <Chip
-                          label={task.priority || 'medium'}
-                          size="small"
-                          color={getPriorityColor(task.priority)}
-                          variant="outlined"
-                        />
-                        <Chip
-                          label={task.status || 'pending'}
-                          size="small"
-                          color={getStatusColor(task.status)}
-                        />
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        {task.description && task.description !== 'null' && task.description.trim() ? (
-                          <Typography variant="body2" color="text.secondary">
-                            {task.description}
-                          </Typography>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            No description
-                          </Typography>
-                        )}
-                        {task.dueDate && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                            <ScheduleIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                            <Typography variant="caption" color="text.secondary">
-                              Due: {new Date(task.dueDate).toLocaleDateString()}
-                            </Typography>
-                          </Box>
-                        )}
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                          ID: {task.id} | Created: {task.createdAt ? new Date(task.createdAt).toLocaleString() : 'Unknown'}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleEditTask(task)}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteTask(task.id)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          )}
-        </CardContent>
-      </Card>
+                      {column.items.map((task, index) => (
+                        <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              <motion.div
+                                animate={{
+                                  scale: snapshot.isDragging ? 1.05 : 1,
+                                  rotate: snapshot.isDragging ? 3 : 0,
+                                  boxShadow: snapshot.isDragging ? '0 15px 30px rgba(0,0,0,0.4)' : '0 4px 10px rgba(0,0,0,0.1)'
+                                }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                                className="container-root"
+                              >
+                                <Card 
+                                  sx={{ 
+                                    opacity: columnId === 'completed' && !snapshot.isDragging ? 0.7 : 1,
+                                    mb: 0 // Margin is handled by the parent flex gap now
+                                  }}
+                                >
+                                  <CardContent className="card-content-adaptive">
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
+                                        {task.title || '[No Title]'}
+                                      </Typography>
+                                      {task.description && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                          {task.description}
+                                        </Typography>
+                                      )}
+                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                                        <Chip label={task.priority} size="small" color={getPriorityColor(task.priority)} variant="outlined" />
+                                        {task.dueDate && (
+                                          <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                                            <ScheduleIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                                            <Typography variant="caption">{new Date(task.dueDate).toLocaleDateString()}</Typography>
+                                          </Box>
+                                        )}
+                                      </Box>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-end', justifyContent: 'center' }}>
+                                      <IconButton size="small" onClick={() => handleEditTask(task)}><EditIcon fontSize="small" /></IconButton>
+                                      <IconButton size="small" color="error" onClick={() => handleDeleteTask(task.id)}><DeleteIcon fontSize="small" /></IconButton>
+                                    </Box>
+                                  </CardContent>
+                                </Card>
+                              </motion.div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </Box>
+                  )}
+                </Droppable>
+              </Box>
+            ))}
+          </Box>
+        </DragDropContext>
+      )}
 
-      {/* Floating Action Button */}
-      <Fab
-        color="primary"
-        aria-label="add task"
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        onClick={() => setShowTaskDialog(true)}
-      >
+      <Fab color="primary" sx={{ position: 'fixed', bottom: 24, right: 24 }} onClick={() => setShowTaskDialog(true)}>
         <AddIcon />
       </Fab>
 
-      {/* Task Dialog */}
-      <Dialog open={showTaskDialog} onClose={() => setShowTaskDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {editingTask ? 'Edit Task' : 'Create New Task'}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Task Title"
-                value={taskForm.title}
-                onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                value={taskForm.description}
-                onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                multiline
-                rows={3}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={taskForm.priority}
-                  label="Priority"
-                  onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}
-                >
-                  <MenuItem value="low">Low</MenuItem>
-                  <MenuItem value="medium">Medium</MenuItem>
-                  <MenuItem value="high">High</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Due Date"
-                type="date"
-                value={taskForm.dueDate}
-                onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-            </Grid>
-            {editingTask && (
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    value={taskForm.status}
-                    label="Status"
-                    onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}
-                  >
-                    <MenuItem value="pending">Pending</MenuItem>
-                    <MenuItem value="completed">Completed</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            )}
+      <SlidingPanel
+        open={showTaskDialog}
+        onClose={() => setShowTaskDialog(false)}
+        title={editingTask ? 'Edit Task' : 'Create New Task'}
+        width="400px"
+      >
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Task Title" value={taskForm.title} onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })} required />
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowTaskDialog(false)} disabled={submitting}>Cancel</Button>
-          <Button 
-            onClick={handleCreateTask} 
-            variant="contained" 
-            disabled={submitting}
-            startIcon={submitting ? <LoadingSpinner size={16} type="spin" color="#fff" /> : null}
-          >
-            {submitting ? 'Saving...' : (editingTask ? 'Update' : 'Create')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Description" value={taskForm.description} onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })} multiline rows={4} />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel>Priority</InputLabel>
+              <Select value={taskForm.priority} label="Priority" onChange={(e) => setTaskForm({ ...taskForm, priority: e.target.value })}>
+                <MenuItem value="low">Low</MenuItem>
+                <MenuItem value="medium">Medium</MenuItem>
+                <MenuItem value="high">High</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Due Date" type="date" value={taskForm.dueDate} onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })} slotProps={{ inputLabel: { shrink: true } }} />
+          </Grid>
+          <Grid item xs={12}>
+            <FormControl fullWidth>
+              <InputLabel>Status</InputLabel>
+              <Select value={taskForm.status} label="Status" onChange={(e) => setTaskForm({ ...taskForm, status: e.target.value })}>
+                <MenuItem value="pending">To Do</MenuItem>
+                <MenuItem value="in_progress">In Progress</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+            <Button onClick={() => setShowTaskDialog(false)} disabled={submitting}>Cancel</Button>
+            <Button onClick={handleCreateTask} variant="contained" disabled={submitting}>
+              {submitting ? 'Saving...' : (editingTask ? 'Update Task' : 'Create Task')}
+            </Button>
+          </Grid>
+        </Grid>
+      </SlidingPanel>
     </Box>
   );
 };

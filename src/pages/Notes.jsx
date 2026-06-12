@@ -32,6 +32,8 @@ import notificationService from '../services/notificationService';
 import PageHeader from '../components/PageHeader';
 import LoadingSpinner from '../components/LoadingSpinner';
 import NoteShareDialog from '../components/NoteShareDialog';
+import SlidingPanel from '../components/SlidingPanel';
+import RichTextEditor from '../components/RichTextEditor';
 
 const Notes = () => {
   const dispatch = useDispatch();
@@ -357,39 +359,46 @@ const Notes = () => {
         </Box>
       )}
 
-      {/* Note Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{currentNote ? 'Edit Note' : 'New Note'}</DialogTitle>
-        <DialogContent>
+      {/* Note Sliding Panel */}
+      <SlidingPanel
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        title={currentNote ? 'Edit Note' : 'New Note'}
+        width="600px"
+        anchor="right"
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', gap: 3 }}>
           <TextField
             fullWidth
-            label="Title"
+            label="Note Title"
+            variant="outlined"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            sx={{ marginTop: 1, marginBottom: 2 }}
           />
-          <TextField
-            fullWidth
-            multiline
-            rows={10}
-            label="Content"
-            value={formData.content}
-            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button
-            onClick={handleSave}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-            }}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>Content</Typography>
+            <RichTextEditor
+              content={formData.content}
+              onChange={(html) => setFormData({ ...formData, content: html })}
+              onSave={handleSave}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 'auto', pt: 2, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              }}
+            >
+              Save Note
+            </Button>
+          </Box>
+        </Box>
+      </SlidingPanel>
 
       {/* Note Share Dialog */}
       <NoteShareDialog

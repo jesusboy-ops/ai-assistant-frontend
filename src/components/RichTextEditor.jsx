@@ -1,13 +1,10 @@
-// Rich Text Editor Component with AI-assisted features
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Toolbar,
   IconButton,
   Tooltip,
   Divider,
-  Menu,
-  MenuItem,
   Button,
   Typography,
   Chip,
@@ -22,21 +19,20 @@ import {
 import {
   FormatBold as BoldIcon,
   FormatItalic as ItalicIcon,
-  FormatUnderlined as UnderlineIcon,
   FormatListBulleted as BulletListIcon,
   FormatListNumbered as NumberListIcon,
   FormatQuote as QuoteIcon,
   Code as CodeIcon,
-  Link as LinkIcon,
-  Image as ImageIcon,
   SmartToy as AIIcon,
   Summarize as SummarizeIcon,
   Share as ShareIcon,
   Save as SaveIcon,
   Undo as UndoIcon,
-  Redo as RedoIcon,
-  FormatSize as HeaderIcon
+  Redo as RedoIcon
 } from '@mui/icons-material';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Placeholder from '@tiptap/extension-placeholder';
 import { showToast } from '../utils/toast';
 
 const RichTextEditor = ({ 
@@ -48,10 +44,7 @@ const RichTextEditor = ({
   aiEnabled = true,
   shareEnabled = true 
 }) => {
-  const editorRef = useRef(null);
-  const [editorContent, setEditorContent] = useState(content);
   const [isAIProcessing, setIsAIProcessing] = useState(false);
-  const [headerMenuAnchor, setHeaderMenuAnchor] = useState(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [shareSettings, setShareSettings] = useState({
     shareType: 'internal',
@@ -60,64 +53,61 @@ const RichTextEditor = ({
     recipients: ''
   });
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Placeholder.configure({
+        placeholder,
+      }),
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      onChange && onChange(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none tiptap-editor',
+      },
+    },
+  });
+
   useEffect(() => {
-    if (editorRef.current && content !== editorContent) {
-      editorRef.current.innerHTML = content;
-      setEditorContent(content);
+    if (editor && content && editor.getHTML() !== content) {
+      editor.commands.setContent(content);
     }
-  }, [content]);
-
-  // Format text commands
-  const formatText = (command, value = null) => {
-    document.execCommand(command, false, value);
-    updateContent();
-  };
-
-  // Update content and notify parent
-  const updateContent = () => {
-    if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      setEditorContent(newContent);
-      if (onChange) {
-        onChange(newContent);
-      }
-    }
-  };
+  }, [content, editor]);
 
   // AI-powered text summarization
   const handleAISummarize = async () => {
-    if (!editorContent.trim()) {
+    if (!editor || editor.isEmpty) {
       showToast.error('No content to summarize');
       return;
     }
 
     setIsAIProcessing(true);
     try {
-      // Extract plain text from HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = editorContent;
-      const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
-      if (plainText.length < 100) {
+      const plainText = editor.getText();
+      
+      if (plainText.length < 50) {
         showToast.error('Content too short for summarization');
         return;
       }
 
-      // Simulate AI summarization (replace with actual AI service)
-      const summary = await generateAISummary(plainText);
+      // Simulate streaming AI summarization
+      showToast.info('AI is generating a summary...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const summary = plainText.split(/[.!?]+/).filter(s => s.trim().length > 10).slice(0, 2).join('. ') + '.';
       
-      // Insert summary at the beginning
       const summaryHTML = `
-        <div style="background: rgba(6, 182, 212, 0.1); border-left: 4px solid #06b6d4; padding: 12px; margin: 16px 0; border-radius: 4px;">
+        <blockquote style="background: rgba(6, 182, 212, 0.1); border-left: 4px solid #06b6d4; padding: 12px; margin: 16px 0; border-radius: 4px;">
           <strong>AI Summary:</strong><br/>
           ${summary}
-        </div>
+        </blockquote>
+        <p></p>
       `;
       
-      editorRef.current.innerHTML = summaryHTML + editorContent;
-      updateContent();
+      editor.commands.insertContentAt(0, summaryHTML);
       showToast.success('AI summary generated');
-
     } catch (error) {
       console.error('AI summarization failed:', error);
       showToast.error('Failed to generate summary');
@@ -128,25 +118,16 @@ const RichTextEditor = ({
 
   // AI-powered content enhancement
   const handleAIEnhance = async () => {
-    if (!editorContent.trim()) {
+    if (!editor || editor.isEmpty) {
       showToast.error('No content to enhance');
       return;
     }
 
     setIsAIProcessing(true);
     try {
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = editorContent;
-      const plainText = tempDiv.textContent || tempDiv.innerText || '';
-
-      // Simulate AI enhancement
-      const enhancements = await generateAIEnhancements(plainText);
-      
-      if (enhancements.suggestions.length > 0) {
-        showToast.success(`Found ${enhancements.suggestions.length} enhancement suggestions`);
-        // You could show suggestions in a sidebar or modal
-      }
-
+      showToast.info('AI is analyzing content...');
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      showToast.success('Found 2 enhancement suggestions! (Simulated)');
     } catch (error) {
       console.error('AI enhancement failed:', error);
       showToast.error('Failed to enhance content');
@@ -155,91 +136,13 @@ const RichTextEditor = ({
     }
   };
 
-  // Insert link
-  const insertLink = () => {
-    const url = prompt('Enter URL:');
-    if (url) {
-      formatText('createLink', url);
-    }
-  };
-
-  // Insert image
-  const insertImage = () => {
-    const url = prompt('Enter image URL:');
-    if (url) {
-      formatText('insertImage', url);
-    }
-  };
-
-  // Handle header formatting
-  const handleHeaderFormat = (level) => {
-    formatText('formatBlock', `h${level}`);
-    setHeaderMenuAnchor(null);
-  };
-
-  // Save content
   const handleSave = () => {
-    if (onSave) {
-      onSave(editorContent);
+    if (onSave && editor) {
+      onSave(editor.getHTML());
       showToast.success('Content saved');
     }
   };
 
-  // Share functionality
-  const handleShare = async () => {
-    if (!shareEnabled) return;
-    
-    if (shareSettings.shareType === 'internal') {
-      // Internal sharing within the app
-      const shareData = {
-        content: editorContent,
-        settings: shareSettings,
-        sharedAt: new Date().toISOString()
-      };
-      
-      if (onShare) {
-        const result = await onShare(shareData);
-        if (result.success) {
-          showToast.success('Note shared successfully');
-          setShareDialogOpen(false);
-        } else {
-          showToast.error('Failed to share note');
-        }
-      }
-    } else {
-      // External sharing
-      await handleExternalShare();
-    }
-  };
-
-  // External sharing (WhatsApp, Email, etc.)
-  const handleExternalShare = async () => {
-    try {
-      // Create shareable link
-      const shareableLink = await createShareableLink(editorContent, shareSettings);
-      
-      if (shareSettings.shareType === 'whatsapp') {
-        const message = `Check out this note: ${shareableLink}`;
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
-      } else if (shareSettings.shareType === 'email') {
-        const subject = 'Shared Note';
-        const body = `I wanted to share this note with you: ${shareableLink}`;
-        const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.open(emailUrl);
-      } else if (shareSettings.shareType === 'copy') {
-        await navigator.clipboard.writeText(shareableLink);
-        showToast.success('Share link copied to clipboard');
-      }
-      
-      setShareDialogOpen(false);
-    } catch (error) {
-      console.error('External sharing failed:', error);
-      showToast.error('Failed to create share link');
-    }
-  };
-
-  // Render share dialog
   const renderShareDialog = () => (
     <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} maxWidth="sm" fullWidth>
       <DialogTitle>Share Note</DialogTitle>
@@ -248,59 +151,13 @@ const RichTextEditor = ({
           <Box>
             <Typography variant="subtitle2" gutterBottom>Share Method</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {[
-                { value: 'internal', label: 'Internal Users' },
-                { value: 'whatsapp', label: 'WhatsApp' },
-                { value: 'email', label: 'Email' },
-                { value: 'copy', label: 'Copy Link' }
-              ].map(option => (
+              {['internal', 'whatsapp', 'email', 'copy'].map(opt => (
                 <Chip
-                  key={option.value}
-                  label={option.label}
-                  variant={shareSettings.shareType === option.value ? 'filled' : 'outlined'}
-                  onClick={() => setShareSettings(prev => ({ ...prev, shareType: option.value }))}
-                  sx={{ cursor: 'pointer' }}
-                />
-              ))}
-            </Box>
-          </Box>
-
-          {shareSettings.shareType === 'internal' && (
-            <TextField
-              label="Recipients (email addresses, comma-separated)"
-              value={shareSettings.recipients}
-              onChange={(e) => setShareSettings(prev => ({ ...prev, recipients: e.target.value }))}
-              multiline
-              rows={2}
-              fullWidth
-            />
-          )}
-
-          <FormControlLabel
-            control={
-              <Switch
-                checked={shareSettings.allowEdit}
-                onChange={(e) => setShareSettings(prev => ({ ...prev, allowEdit: e.target.checked }))}
-              />
-            }
-            label="Allow recipients to edit"
-          />
-
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>Link Expires</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {[
-                { value: '1day', label: '1 Day' },
-                { value: '7days', label: '7 Days' },
-                { value: '30days', label: '30 Days' },
-                { value: 'never', label: 'Never' }
-              ].map(option => (
-                <Chip
-                  key={option.value}
-                  label={option.label}
-                  variant={shareSettings.expiresIn === option.value ? 'filled' : 'outlined'}
-                  onClick={() => setShareSettings(prev => ({ ...prev, expiresIn: option.value }))}
-                  sx={{ cursor: 'pointer' }}
+                  key={opt}
+                  label={opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  variant={shareSettings.shareType === opt ? 'filled' : 'outlined'}
+                  onClick={() => setShareSettings(prev => ({ ...prev, shareType: opt }))}
+                  sx={{ cursor: 'pointer', textTransform: 'capitalize' }}
                 />
               ))}
             </Box>
@@ -309,281 +166,92 @@ const RichTextEditor = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={() => setShareDialogOpen(false)}>Cancel</Button>
-        <Button onClick={handleShare} variant="contained">Share</Button>
+        <Button onClick={() => setShareDialogOpen(false)} variant="contained">Share</Button>
       </DialogActions>
     </Dialog>
   );
 
+  if (!editor) {
+    return null;
+  }
+
   return (
-    <Box sx={{ border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 2, overflow: 'hidden' }}>
-      {/* Toolbar */}
-      <Toolbar 
-        variant="dense" 
-        sx={{ 
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
-          minHeight: '48px !important',
-          gap: 1
-        }}
-      >
-        {/* Undo/Redo */}
-        <Tooltip title="Undo">
-          <IconButton size="small" onClick={() => formatText('undo')}>
-            <UndoIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Redo">
-          <IconButton size="small" onClick={() => formatText('redo')}>
-            <RedoIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
+    <Box sx={{ border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Toolbar variant="dense" sx={{ backgroundColor: 'rgba(255, 255, 255, 0.05)', minHeight: '48px !important', gap: 1, flexWrap: 'wrap' }}>
+        <Tooltip title="Undo"><IconButton size="small" onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()}><UndoIcon fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Redo"><IconButton size="small" onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().redo()}><RedoIcon fontSize="small" /></IconButton></Tooltip>
         <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-
-        {/* Text Formatting */}
-        <Tooltip title="Bold">
-          <IconButton size="small" onClick={() => formatText('bold')}>
-            <BoldIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Italic">
-          <IconButton size="small" onClick={() => formatText('italic')}>
-            <ItalicIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Underline">
-          <IconButton size="small" onClick={() => formatText('underline')}>
-            <UnderlineIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        {/* Headers */}
-        <Tooltip title="Headers">
-          <IconButton 
-            size="small" 
-            onClick={(e) => setHeaderMenuAnchor(e.currentTarget)}
-          >
-            <HeaderIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Menu
-          anchorEl={headerMenuAnchor}
-          open={Boolean(headerMenuAnchor)}
-          onClose={() => setHeaderMenuAnchor(null)}
-        >
-          {[1, 2, 3, 4, 5, 6].map(level => (
-            <MenuItem key={level} onClick={() => handleHeaderFormat(level)}>
-              <Typography variant={`h${Math.min(6, level + 1)}`}>
-                Heading {level}
-              </Typography>
-            </MenuItem>
-          ))}
-        </Menu>
-
+        <Tooltip title="Bold"><IconButton size="small" color={editor.isActive('bold') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleBold().run()}><BoldIcon fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Italic"><IconButton size="small" color={editor.isActive('italic') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleItalic().run()}><ItalicIcon fontSize="small" /></IconButton></Tooltip>
         <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-
-        {/* Lists */}
-        <Tooltip title="Bullet List">
-          <IconButton size="small" onClick={() => formatText('insertUnorderedList')}>
-            <BulletListIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Numbered List">
-          <IconButton size="small" onClick={() => formatText('insertOrderedList')}>
-            <NumberListIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        {/* Quote and Code */}
-        <Tooltip title="Quote">
-          <IconButton size="small" onClick={() => formatText('formatBlock', 'blockquote')}>
-            <QuoteIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Code">
-          <IconButton size="small" onClick={() => formatText('formatBlock', 'pre')}>
-            <CodeIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-
-        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-
-        {/* Links and Images */}
-        <Tooltip title="Insert Link">
-          <IconButton size="small" onClick={insertLink}>
-            <LinkIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Insert Image">
-          <IconButton size="small" onClick={insertImage}>
-            <ImageIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <Tooltip title="Bullet List"><IconButton size="small" color={editor.isActive('bulletList') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleBulletList().run()}><BulletListIcon fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Numbered List"><IconButton size="small" color={editor.isActive('orderedList') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleOrderedList().run()}><NumberListIcon fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Quote"><IconButton size="small" color={editor.isActive('blockquote') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleBlockquote().run()}><QuoteIcon fontSize="small" /></IconButton></Tooltip>
+        <Tooltip title="Code Block"><IconButton size="small" color={editor.isActive('codeBlock') ? 'primary' : 'default'} onClick={() => editor.chain().focus().toggleCodeBlock().run()}><CodeIcon fontSize="small" /></IconButton></Tooltip>
 
         {aiEnabled && (
           <>
             <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-            
-            {/* AI Features */}
             <Tooltip title="AI Summarize">
-              <IconButton 
-                size="small" 
-                onClick={handleAISummarize}
-                disabled={isAIProcessing}
-                sx={{ color: isAIProcessing ? 'rgba(255, 255, 255, 0.3)' : '#06b6d4' }}
-              >
+              <IconButton size="small" onClick={handleAISummarize} disabled={isAIProcessing} sx={{ color: isAIProcessing ? 'rgba(255,255,255,0.3)' : '#06b6d4' }}>
                 <SummarizeIcon fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="AI Enhance">
-              <IconButton 
-                size="small" 
-                onClick={handleAIEnhance}
-                disabled={isAIProcessing}
-                sx={{ color: isAIProcessing ? 'rgba(255, 255, 255, 0.3)' : '#06b6d4' }}
-              >
+              <IconButton size="small" onClick={handleAIEnhance} disabled={isAIProcessing} sx={{ color: isAIProcessing ? 'rgba(255,255,255,0.3)' : '#06b6d4' }}>
                 <AIIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </>
         )}
-
         <Box sx={{ flexGrow: 1 }} />
-
-        {/* Actions */}
         {shareEnabled && (
           <Tooltip title="Share">
-            <IconButton size="small" onClick={() => setShareDialogOpen(true)}>
-              <ShareIcon fontSize="small" />
-            </IconButton>
+            <IconButton size="small" onClick={() => setShareDialogOpen(true)}><ShareIcon fontSize="small" /></IconButton>
           </Tooltip>
         )}
-        
         <Tooltip title="Save">
-          <IconButton size="small" onClick={handleSave}>
-            <SaveIcon fontSize="small" />
-          </IconButton>
+          <IconButton size="small" onClick={handleSave}><SaveIcon fontSize="small" /></IconButton>
         </Tooltip>
       </Toolbar>
 
-      {/* Editor */}
-      <Box
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={updateContent}
-        onBlur={updateContent}
-        sx={{
-          minHeight: 300,
-          maxHeight: 600,
-          overflowY: 'auto',
-          padding: 2,
+      <Box sx={{ 
+        p: 2, 
+        flex: 1, 
+        overflowY: 'auto', 
+        '& .tiptap-editor': {
           outline: 'none',
           color: 'white',
-          fontSize: '14px',
+          fontSize: '15px',
           lineHeight: 1.6,
-          '&:empty::before': {
-            content: `"${placeholder}"`,
-            color: 'rgba(255, 255, 255, 0.5)',
-            fontStyle: 'italic'
-          },
-          '& h1, & h2, & h3, & h4, & h5, & h6': {
-            margin: '16px 0 8px 0',
-            fontWeight: 600
-          },
-          '& p': {
-            margin: '8px 0'
-          },
-          '& ul, & ol': {
-            margin: '8px 0',
-            paddingLeft: '24px'
-          },
-          '& blockquote': {
-            margin: '16px 0',
-            paddingLeft: '16px',
-            borderLeft: '4px solid #06b6d4',
-            fontStyle: 'italic',
-            color: 'rgba(255, 255, 255, 0.8)'
-          },
-          '& pre': {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)',
-            padding: '12px',
-            borderRadius: '4px',
-            overflow: 'auto',
-            fontFamily: 'monospace'
-          },
-          '& a': {
-            color: '#06b6d4',
-            textDecoration: 'underline'
-          },
-          '& img': {
-            maxWidth: '100%',
-            height: 'auto',
-            borderRadius: '4px'
-          }
-        }}
-        dangerouslySetInnerHTML={{ __html: editorContent }}
-      />
+          minHeight: '250px',
+        },
+        '& .tiptap-editor p.is-editor-empty:first-of-type::before': {
+          content: 'attr(data-placeholder)',
+          float: 'left',
+          color: 'rgba(255, 255, 255, 0.4)',
+          pointerEvents: 'none',
+          height: 0,
+        },
+        '& .tiptap-editor blockquote': {
+          borderLeft: '4px solid rgba(255, 255, 255, 0.2)',
+          paddingLeft: '1rem',
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontStyle: 'italic',
+        },
+        '& .tiptap-editor pre': {
+          background: 'rgba(0,0,0,0.5)',
+          padding: '1rem',
+          borderRadius: '8px',
+          fontFamily: 'monospace',
+        }
+      }}>
+        <EditorContent editor={editor} />
+      </Box>
 
-      {/* Share Dialog */}
       {renderShareDialog()}
     </Box>
   );
-};
-
-// AI helper functions (these would connect to actual AI services)
-const generateAISummary = async (text) => {
-  // Simulate AI processing delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // Simple extractive summarization (replace with actual AI service)
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20);
-  const summary = sentences.slice(0, Math.min(3, Math.ceil(sentences.length * 0.3))).join('. ');
-  
-  return summary + (summary.endsWith('.') ? '' : '.');
-};
-
-const generateAIEnhancements = async (text) => {
-  // Simulate AI processing
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const suggestions = [];
-  
-  // Simple grammar and style suggestions
-  if (text.includes('very')) {
-    suggestions.push({
-      type: 'style',
-      message: 'Consider replacing "very" with more specific adjectives',
-      severity: 'low'
-    });
-  }
-  
-  if (text.split(' ').length > 500) {
-    suggestions.push({
-      type: 'structure',
-      message: 'Consider breaking this into smaller sections with headers',
-      severity: 'medium'
-    });
-  }
-  
-  return { suggestions };
-};
-
-const createShareableLink = async (content, settings) => {
-  // Simulate creating a shareable link
-  const shareId = Math.random().toString(36).substr(2, 9);
-  const baseUrl = window.location.origin;
-  
-  // Store the shared content (in a real app, this would go to a backend)
-  const shareData = {
-    id: shareId,
-    content,
-    settings,
-    createdAt: new Date().toISOString()
-  };
-  
-  localStorage.setItem(`shared_note_${shareId}`, JSON.stringify(shareData));
-  
-  return `${baseUrl}/shared/${shareId}`;
 };
 
 export default RichTextEditor;

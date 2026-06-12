@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -33,7 +33,26 @@ const slideIn = keyframes`
 const MessageBubble = ({ message, isUser, timestamp, isNew = false }) => {
   const [showActions, setShowActions] = useState(false);
   const [liked, setLiked] = useState(null);
+  const [displayedText, setDisplayedText] = useState(isUser || !isNew ? message : '');
   const theme = useTheme();
+
+  useEffect(() => {
+    if (!isUser && isNew && message) {
+      let currentIndex = 0;
+      const words = message.split(' ');
+      const interval = setInterval(() => {
+        if (currentIndex < words.length) {
+          setDisplayedText(words.slice(0, currentIndex + 1).join(' '));
+          currentIndex++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 50); // 50ms per word
+      return () => clearInterval(interval);
+    } else {
+      setDisplayedText(message);
+    }
+  }, [message, isUser, isNew]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message);
@@ -124,7 +143,7 @@ const MessageBubble = ({ message, isUser, timestamp, isNew = false }) => {
                 margin: 0
               }}
             >
-              {message}
+              {displayedText}
             </Typography>
 
             {/* Action Buttons for AI messages */}

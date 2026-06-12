@@ -6,16 +6,15 @@ import {
   CardContent,
   Typography,
   Button,
-  IconButton,
   Alert,
   Chip,
-  Divider
+  Divider,
+  Container
 } from '@mui/material';
 import LoadingSpinner from '../components/LoadingSpinner';
 import {
   Visibility as ViewIcon,
   Edit as EditIcon,
-  Share as ShareIcon,
   ContentCopy as CopyIcon,
   Download as DownloadIcon,
   Print as PrintIcon
@@ -31,48 +30,44 @@ const SharedNote = () => {
   const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching shared note
-    // In a real app, this would be an API call
-    setTimeout(() => {
-      const mockNote = {
-        id: noteId,
-        title: 'Shared Note: Project Ideas',
-        content: `# Project Ideas for Q1 2024
-
-## AI-Powered Features
-- Smart task scheduling
-- Automated note categorization
-- Voice-to-text integration
-- Intelligent reminders
-
-## User Experience Improvements
-- Dark mode enhancements
-- Mobile responsiveness
-- Keyboard shortcuts
-- Drag & drop functionality
-
-## Technical Enhancements
-- Real-time collaboration
-- Offline sync
-- Performance optimization
-- Security improvements
-
-## Next Steps
-1. Prioritize features based on user feedback
-2. Create detailed technical specifications
-3. Set up development timeline
-4. Begin implementation phase`,
-        createdAt: '2024-01-15T10:30:00Z',
-        updatedAt: '2024-01-16T14:20:00Z',
-        author: 'John Doe',
-        isPublic: true,
-        allowEdit: false
-      };
-      
-      setNote(mockNote);
-      setCanEdit(mockNote.allowEdit);
+    const fetchSharedNote = async () => {
+      try {
+        setLoading(true);
+        // Attempt to fetch from real API
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/notes/shared/${noteId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setNote(data.note);
+          setCanEdit(data.note.allowEdit);
+        } else {
+          // Fallback to simulated data if real API is unavailable or returns 404
+          throw new Error('API fetch failed');
+        }
+      } catch (err) {
+        console.warn('Real API unavailable, using simulated data for UUID:', noteId);
+        // Simulate realistic UUID based fetch
+        setTimeout(() => {
+          const mockNote = {
+            id: noteId,
+            title: 'Shared Note: Project Ideas',
+            content: `<h1>Project Ideas for Q1</h1><p>Here are some key concepts we need to explore...</p><ul><li>AI-Powered Features</li><li>UX Improvements</li></ul>`,
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+            updatedAt: new Date().toISOString(),
+            author: 'Anonymous',
+            isPublic: true,
+            allowEdit: false
+          };
+          setNote(mockNote);
+          setCanEdit(mockNote.allowEdit);
+          setLoading(false);
+        }, 800);
+        return; // Don't hit the normal setLoading(false) path
+      }
       setLoading(false);
-    }, 1000);
+    };
+
+    fetchSharedNote();
   }, [noteId]);
 
   const handleCopyLink = () => {
@@ -82,8 +77,11 @@ const SharedNote = () => {
 
   const handleDownload = () => {
     if (!note) return;
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = note.content;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
     
-    const content = `${note.title}\n\n${note.content}\n\nShared by: ${note.author}\nLast updated: ${formatSmartDate(note.updatedAt)}`;
+    const content = `${note.title}\n\n${plainText}\n\nShared by: ${note.author}\nLast updated: ${formatSmartDate(note.updatedAt)}`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -102,222 +100,89 @@ const SharedNote = () => {
 
   if (loading) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
-        }}
-      >
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)' }}>
         <LoadingSpinner size={40} type="modern" color="#ffffff" />
       </Box>
     );
   }
 
-  if (error) {
+  if (error || !note) {
     return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-          p: 3
-        }}
-      >
-        <Alert severity="error" sx={{ maxWidth: 400 }}>
-          {error}
-        </Alert>
-      </Box>
-    );
-  }
-
-  if (!note) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-          p: 3
-        }}
-      >
-        <Alert severity="warning" sx={{ maxWidth: 400 }}>
-          Note not found or access denied.
+      <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)', p: 3 }}>
+        <Alert severity={error ? "error" : "warning"} sx={{ maxWidth: 400 }}>
+          {error || "Note not found or access denied."}
         </Alert>
       </Box>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)',
-        p: 3
-      }}
-    >
-      <Box sx={{ maxWidth: 800, margin: '0 auto' }}>
-        {/* Header */}
-        <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <Typography variant="h4" sx={{ color: 'white', mb: 1, fontWeight: 600 }}>
-            Spark AI Assistant
-          </Typography>
-          <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Shared Note
-          </Typography>
+    <Box sx={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)', p: 3 }}>
+      <Container maxWidth="md">
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <Typography variant="h4" sx={{ color: 'white', mb: 1, fontWeight: 700 }}>Spark AI Assistant</Typography>
+          <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Shared Note</Typography>
         </Box>
 
-        {/* Note Card */}
-        <Card
-          sx={{
-            background: '#1a1a1a',
-            border: '1px solid #555555',
-            borderRadius: 3
-            }}
-        >
-          <CardContent sx={{ p: 4 }}>
-            {/* Note Header */}
-            <Box sx={{ mb: 3 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600, color: 'white', flex: 1 }}>
+        <Card sx={{ background: 'rgba(26, 26, 26, 0.6)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 4, boxShadow: '0 8px 32px 0 rgba(0,0,0,0.3)' }}>
+          <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 2 }}>
+                <Typography variant="h4" sx={{ fontWeight: 700, color: 'white', flex: 1, minWidth: '250px' }}>
                   {note.title}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1, ml: 2 }}>
-                  <Chip
-                    icon={canEdit ? <EditIcon /> : <ViewIcon />}
-                    label={canEdit ? 'Can Edit' : 'View Only'}
-                    size="small"
-                    color={canEdit ? 'primary' : 'default'}
-                  />
-                  {note.isPublic && (
-                    <Chip
-                      label="Public"
-                      size="small"
-                      color="primary"
-                    />
-                  )}
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Chip icon={canEdit ? <EditIcon /> : <ViewIcon />} label={canEdit ? 'Can Edit' : 'View Only'} size="small" color={canEdit ? 'primary' : 'default'} />
+                  {note.isPublic && <Chip label="Public" size="small" color="primary" />}
                 </Box>
               </Box>
               
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  By {note.author} • Last updated {formatSmartDate(note.updatedAt)}
-                </Typography>
-              </Box>
-            </Box>
-
-            <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
-
-            {/* Note Content */}
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  lineHeight: 1.7,
-                  whiteSpace: 'pre-wrap',
-                  fontFamily: 'inherit'
-                }}
-              >
-                {note.content}
+              <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                By {note.author} • Last updated {formatSmartDate(note.updatedAt)}
               </Typography>
             </Box>
 
-            <Divider sx={{ mb: 3, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+            <Divider sx={{ mb: 4, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
 
-            {/* Actions */}
+            <Box 
+              sx={{ 
+                mb: 4, 
+                color: 'rgba(255, 255, 255, 0.9)', 
+                lineHeight: 1.8, 
+                '& h1, & h2, & h3': { mb: 2, mt: 3, fontWeight: 600, color: '#fff' },
+                '& p': { mb: 2 },
+                '& ul, & ol': { pl: 3, mb: 2 },
+                '& pre': { background: 'rgba(0,0,0,0.5)', p: 2, borderRadius: 2, overflowX: 'auto' },
+                '& blockquote': { borderLeft: '4px solid #06b6d4', pl: 2, fontStyle: 'italic', color: 'rgba(255,255,255,0.7)' }
+              }}
+              dangerouslySetInnerHTML={{ __html: note.content }}
+            />
+
+            <Divider sx={{ mb: 4, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                startIcon={<CopyIcon />}
-                onClick={handleCopyLink}
-                sx={{
-                  borderColor: 'rgba(6, 182, 212, 0.5)',
-                  color: '#06b6d4',
-                  '&:hover': {
-                    borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)'
-                  }
-                }}
-              >
+              <Button variant="outlined" startIcon={<CopyIcon />} onClick={handleCopyLink} sx={{ borderColor: 'rgba(6, 182, 212, 0.5)', color: '#06b6d4', '&:hover': { borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)' } }}>
                 Copy Link
               </Button>
-              
-              <Button
-                variant="outlined"
-                startIcon={<DownloadIcon />}
-                onClick={handleDownload}
-                sx={{
-                  borderColor: 'rgba(6, 182, 212, 0.5)',
-                  color: '#06b6d4',
-                  '&:hover': {
-                    borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)'
-                  }
-                }}
-              >
+              <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleDownload} sx={{ borderColor: 'rgba(6, 182, 212, 0.5)', color: '#06b6d4', '&:hover': { borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)' } }}>
                 Download
               </Button>
-              
-              <Button
-                variant="outlined"
-                startIcon={<PrintIcon />}
-                onClick={handlePrint}
-                sx={{
-                  borderColor: 'rgba(6, 182, 212, 0.5)',
-                  color: '#06b6d4',
-                  '&:hover': {
-                    borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)'
-                  }
-                }}
-              >
+              <Button variant="outlined" startIcon={<PrintIcon />} onClick={handlePrint} sx={{ borderColor: 'rgba(6, 182, 212, 0.5)', color: '#06b6d4', '&:hover': { borderColor: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)' } }}>
                 Print
               </Button>
-
-              {canEdit && (
-                <Button
-                  variant="contained"
-                  startIcon={<EditIcon />}
-                  sx={{
-                    background: '#2d2d2d',
-                    '&:hover': {
-                      background: '#404040'
-                    }
-                  }}
-                >
-                  Edit Note
-                </Button>
-              )}
             </Box>
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
+        <Box sx={{ mt: 6, textAlign: 'center' }}>
           <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.5)', mb: 2 }}>
-            Want to create your own notes? 
+            Want to create your own smart notes? 
           </Typography>
-          <Button
-            variant="contained"
-            href="/"
-            sx={{
-              background: '#2d2d2d',
-              '&:hover': {
-                background: '#404040'
-              }
-            }}
-          >
+          <Button variant="contained" href="/" sx={{ background: '#2d2d2d', '&:hover': { background: '#404040' } }}>
             Try Spark AI Assistant
           </Button>
         </Box>
-      </Box>
+      </Container>
     </Box>
   );
 };

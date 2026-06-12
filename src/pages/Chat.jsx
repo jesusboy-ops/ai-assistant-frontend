@@ -19,6 +19,8 @@ import ChatInput from '../components/chat/ChatInput';
 import ConversationList from '../components/chat/ConversationList';
 import WelcomeMessage from '../components/chat/WelcomeMessage';
 import StudyModeToggle from '../components/study/StudyModeToggle';
+import SlidingPanel from '../components/SlidingPanel';
+import { TextField, Button, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 const Chat = () => {
   const theme = useTheme();
@@ -43,6 +45,7 @@ const Chat = () => {
   const [messageInput, setMessageInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [slashCommandState, setSlashCommandState] = useState({ open: false, type: null });
   const messagesEndRef = useRef(null);
 
   // Ensure arrays are safe
@@ -73,6 +76,18 @@ const Chat = () => {
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || sending) return;
+
+    if (messageInput.trim().toLowerCase() === '/task') {
+      setSlashCommandState({ open: true, type: 'task' });
+      setMessageInput('');
+      return;
+    }
+    
+    if (messageInput.trim().toLowerCase() === '/reminder') {
+      setSlashCommandState({ open: true, type: 'reminder' });
+      setMessageInput('');
+      return;
+    }
 
     const message = messageInput;
     setMessageInput('');
@@ -381,10 +396,33 @@ const Chat = () => {
             onKeyPress={handleKeyPress}
             disabled={loading}
             sending={sending}
-            placeholder="Type a message..."
+            placeholder="Type a message or use /task, /reminder..."
           />
         </Box>
       </Box>
+
+      {/* Slash Command Panels */}
+      <SlidingPanel
+        open={slashCommandState.open}
+        onClose={() => setSlashCommandState({ open: false, type: null })}
+        title={`Create New ${slashCommandState.type === 'task' ? 'Task' : 'Reminder'}`}
+        width="400px"
+      >
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Title" required />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField fullWidth label="Details" multiline rows={4} />
+          </Grid>
+          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
+            <Button onClick={() => setSlashCommandState({ open: false, type: null })}>Cancel</Button>
+            <Button onClick={() => setSlashCommandState({ open: false, type: null })} variant="contained">
+              Save
+            </Button>
+          </Grid>
+        </Grid>
+      </SlidingPanel>
     </Box>
   );
 };

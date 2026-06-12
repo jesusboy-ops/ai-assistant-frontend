@@ -1,22 +1,34 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '@mui/material';
+import {
+  ChatBubbleOutline as ChatIcon,
+  TaskAlt as TaskIcon,
+  Language as TranslateIcon,
+  Description as DocIcon,
+  Calculate as MathIcon,
+  MailOutline as EmailIcon,
+  Psychology as BrainIcon,
+  TrendingUp as TrendIcon,
+  Security as LockIcon,
+  AutoAwesome as SparkleIcon
+} from '@mui/icons-material';
 import '../styles/landing.css';
 
 const FEATURES = [
-  { icon: '💬', title: 'AI Chat Assistant', desc: 'Intelligent conversations that understand context and execute tasks automatically.' },
-  { icon: '✅', title: 'Smart Task Management', desc: 'Create, organize, and track tasks with AI-powered scheduling and reminders.' },
-  { icon: '🌐', title: 'Language Tools', desc: 'Instant translation and dictionary lookup with pronunciation guides.' },
-  { icon: '📄', title: 'Document Analysis', desc: 'Extract key insights and summaries from any document in seconds.' },
-  { icon: '🧮', title: 'Problem Solver', desc: 'Solve mathematical equations with detailed step-by-step explanations.' },
-  { icon: '✉️', title: 'Email Generator', desc: 'Craft professional emails with AI assistance in multiple tones and styles.' },
+  { icon: <ChatIcon fontSize="large" />, title: 'AI Chat Assistant', desc: 'Intelligent conversations that understand context and execute tasks automatically.' },
+  { icon: <TaskIcon fontSize="large" />, title: 'Smart Task Management', desc: 'Create, organize, and track tasks with AI-powered scheduling and reminders.' },
+  { icon: <TranslateIcon fontSize="large" />, title: 'Language Tools', desc: 'Instant translation and dictionary lookup with pronunciation guides.' },
+  { icon: <DocIcon fontSize="large" />, title: 'Document Analysis', desc: 'Extract key insights and summaries from any document in seconds.' },
+  { icon: <MathIcon fontSize="large" />, title: 'Problem Solver', desc: 'Solve mathematical equations with detailed step-by-step explanations.' },
+  { icon: <EmailIcon fontSize="large" />, title: 'Email Generator', desc: 'Craft professional emails with AI assistance in multiple tones and styles.' },
 ];
 
 const SOLUTIONS = [
-  { icon: '🧠', title: 'Adaptive Learning', desc: 'Improves over time based on real-world interactions, becoming smarter with every use.' },
-  { icon: '📈', title: 'Predictive AI', desc: 'Stay ahead with intelligent suggestions that anticipate your next move.' },
-  { icon: '🔒', title: 'Enterprise Security', desc: 'Bank-grade encryption and privacy controls keep your data safe at all times.' },
-  { icon: '✨', title: 'Intuitive Interface', desc: 'No setup required. Get started in seconds with a clean, modern experience.' },
+  { icon: <BrainIcon fontSize="large" />, title: 'Adaptive Learning', desc: 'Improves over time based on real-world interactions, becoming smarter with every use.' },
+  { icon: <TrendIcon fontSize="large" />, title: 'Predictive AI', desc: 'Stay ahead with intelligent suggestions that anticipate your next move.' },
+  { icon: <LockIcon fontSize="large" />, title: 'Enterprise Security', desc: 'Bank-grade encryption and privacy controls keep your data safe at all times.' },
+  { icon: <SparkleIcon fontSize="large" />, title: 'Intuitive Interface', desc: 'No setup required. Get started in seconds with a clean, modern experience.' },
 ];
 
 const FEATURE_ROUTES = {
@@ -40,7 +52,7 @@ export default function Landing() {
       <nav className="landing-nav">
         <div className="nav-inner">
           <div className="nav-logo" onClick={() => navigate('/')}>
-            <div className="nav-logo-icon">✦</div>
+            <div className="nav-logo-icon"><SparkleIcon fontSize="inherit" /></div>
             <span className="nav-logo-text">SPARK</span>
           </div>
 
@@ -81,11 +93,11 @@ export default function Landing() {
         <div className="hero-glow" />
         <div className="hero-glow-top" />
 
-        <span className="hero-star star-1">✦</span>
-        <span className="hero-star star-2">✦</span>
-        <span className="hero-star star-3">✦</span>
-        <span className="hero-star star-4">✦</span>
-        <span className="hero-star star-5">✦</span>
+        <span className="hero-star star-1"><SparkleIcon fontSize="inherit" /></span>
+        <span className="hero-star star-2"><SparkleIcon fontSize="inherit" /></span>
+        <span className="hero-star star-3"><SparkleIcon fontSize="inherit" /></span>
+        <span className="hero-star star-4"><SparkleIcon fontSize="inherit" /></span>
+        <span className="hero-star star-5"><SparkleIcon fontSize="inherit" /></span>
 
         <div className="hero-content">
           <div className="hero-badge">
@@ -165,7 +177,7 @@ export default function Landing() {
         <div className="cta-glow" />
         <div className="section-grid" />
         <div className="container cta-inner">
-          <span className="hero-star cta-star">✦</span>
+          <span className="hero-star cta-star"><SparkleIcon fontSize="inherit" /></span>
           <h2 className="cta-title">Ready to work<br />smarter?</h2>
           <p className="cta-sub">Join thousands of teams already using Spark AI to boost their productivity.</p>
           <div className="hero-actions">
@@ -179,7 +191,7 @@ export default function Landing() {
       <footer className="landing-footer">
         <div className="container footer-inner">
           <div className="nav-logo">
-            <div className="nav-logo-icon">✦</div>
+            <div className="nav-logo-icon"><SparkleIcon fontSize="inherit" /></div>
             <span className="nav-logo-text">SPARK</span>
           </div>
           <span className="footer-copy">© 2026 Spark AI. All rights reserved.</span>
